@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// test/host/harness.smoke.mjs — real-host rc.5 smoke for dsh-notifier.
+// test/host/harness.smoke.mjs — real-host compatibility smoke for dsh-notifier.
 //
 // Run:  node test/host/harness.smoke.mjs
 //
@@ -7,7 +7,7 @@
 // OUT of the `npm test` glob (`test/*.test.mjs`), so this is a plain executable
 // script that prints a PASS/FAIL summary and exits non-zero on failure.
 //
-// What it proves, on the real DSH 0.2.1-rc.5 CLI:
+// What it proves, on the selected supported DSH CLI:
 //   A. web profile     — boots; the plugin's own channel/admin log line appears.
 //   B. headless profile — boots; the plugin activates with NO connection /
 //                          webServer and NO PENDING wait; its own 已启用渠道
@@ -55,7 +55,7 @@ function sanitize(s) {
 }
 
 async function main() {
-  console.log('dsh-notifier rc.5 real-host harness smoke')
+  console.log('dsh-notifier real-host compatibility smoke')
   console.log(`scratch root : ${SCRATCH_ROOT}`)
   console.log(`pnpm present : ${hasPnpm()}`)
 
@@ -221,8 +221,10 @@ async function main() {
     record('headless has NO pending/waiting-for-services', !pending)
 
     const probePresent = /\[SMOKE-PROBE\] notifier-present \{"present":true\}/.test(hlOutput)
+    const probeTool = /\[SMOKE-PROBE\] tools-registered \{"hasNotify":true\}/.test(hlOutput)
     const probePushOk = /\[SMOKE-PROBE\] push-result .*"ok":true/.test(hlOutput)
     record('probe sees notifier present', probePresent)
+    record('probe sees notify tool registered', probeTool)
     record('probe push reported ok:true', probePushOk)
 
     const hookHits = receiver.requests.filter((r) => r.path === '/hook')

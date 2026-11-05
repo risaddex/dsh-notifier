@@ -139,7 +139,7 @@ Declared requirement (`engines.dsh`; the rc.5 preflight reads it alone and ignor
 `@deepseek-ai/dsh*` peers):
 
 ```text
-0.2.1-rc.5
+0.2.1-rc.5 || 0.2.2-rc.1
 ```
 
 The `0.1.7-*` line is no longer supported: the host preflight rejects the manifest version
@@ -175,7 +175,8 @@ Do not edit a live state file by hand.
 
 ## 7. DSH 0.2.1-rc.5 migration and the new data namespace
 
-This plugin declares activation against DSH **0.2.1-rc.5** only (`engines.dsh`). The rc.5
+This plugin declares activation against exactly **0.2.1-rc.5** and **0.2.2-rc.1**
+(`engines.dsh`). The latter host requires Node >=24.9.0. Both hosts'
 install preflight reads an own `engines.dsh` alone and ignores the `@deepseek-ai/dsh*`
 peers, so the package installs with **no version exemption**.
 

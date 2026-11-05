@@ -165,7 +165,7 @@ dsh plugin add dsh-notifier@latest --profile <profile名>
 声明范围（`engines.dsh`，rc.5 预检只认它、忽略 `@deepseek-ai/dsh*` peer）：
 
 ```text
-0.2.1-rc.5
+0.2.1-rc.5 || 0.2.2-rc.1
 ```
 
 `0.1.7-*` 不再支持：安装时会因 manifest 版本门被宿主预检拒绝（除非手工授予 exact-version
@@ -213,7 +213,8 @@ channel:<type>:outbound
 
 ## 七、DSH 0.2.1-rc.5 迁移与新数据 namespace
 
-本插件只对 DSH **0.2.1-rc.5** 声明激活（`engines.dsh`）。rc.5 的安装预检在插件自报
+本插件对 DSH **0.2.1-rc.5** 和 **0.2.2-rc.1** 精确声明激活（`engines.dsh`）。后者要求
+Node >=24.9.0。两个宿主的安装预检在插件自报
 `engines.dsh` 时只认它、忽略 `@deepseek-ai/dsh*` peer，因此无需任何版本豁免即可安装。
 
 ### 七.1 旧状态不再作为权威

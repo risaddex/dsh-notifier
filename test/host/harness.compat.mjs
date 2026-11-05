@@ -8,7 +8,8 @@ import { DSH_HOST_NODE_MODULES, REPO_ROOT } from './harness.mjs'
 
 const hostDir = join(DSH_HOST_NODE_MODULES, '@deepseek-ai/dsh-app-boot')
 const host = JSON.parse(readFileSync(join(hostDir, 'package.json'), 'utf8'))
-assert.equal(host.version, '0.2.1-rc.5', 'Install the pinned host before running this check')
+const supported = ['0.2.1-rc.5', '0.2.2-rc.1']
+assert(supported.includes(host.version), 'Install one of the exact supported hosts before running this check')
 const { evaluatePluginCompatibility } = await import(pathToFileURL(join(hostDir, 'lib/index.js')).href)
 const manifest = JSON.parse(readFileSync(join(REPO_ROOT, 'package.json'), 'utf8'))
 
@@ -24,15 +25,23 @@ for (const runtime of ['0.2.1-rc.2', host.version]) {
 }
 console.log('PASS: published DSH gate reproduces #51 without an exemption')
 
-assert.equal(evaluatePluginCompatibility(manifest, {}, host.version), undefined)
-console.log('PASS: current manifest is accepted by DSH 0.2.1-rc.5 without an exemption')
+for (const runtime of supported) {
+  assert.equal(evaluatePluginCompatibility(manifest, {}, runtime), undefined)
+}
+console.log(`PASS: ${host.version} evaluator accepts both supported hosts without an exemption`)
+
+const previous = structuredClone(manifest)
+previous.engines.dsh = '0.2.1-rc.5'
+previous.peerDependencies['@deepseek-ai/dsh-session'] = '0.2.1-rc.5'
+assert.deepEqual(evaluatePluginCompatibility(previous, {}, '0.2.2-rc.1').requirements, { 'engines.dsh': '0.2.1-rc.5' })
+console.log('PASS: previous rc.5-only manifest reproduces the 0.2.2-rc.1 rejection')
 
 const staleEngine = structuredClone(manifest)
 staleEngine.engines.dsh = '0.1.7-rc.2'
 assert.deepEqual(evaluatePluginCompatibility(staleEngine, {}, host.version).requirements, { 'engines.dsh': '0.1.7-rc.2' })
 console.log('PASS: stale engines.dsh is rejected even when the optional peer is correct')
 
-for (const runtime of ['0.1.7-rc.2', '0.2.1-rc.2', '0.2.1-rc.6', '0.2.2-alpha.2']) {
+for (const runtime of ['0.1.7-rc.2', '0.2.1-rc.2', '0.2.1-rc.6', '0.2.2-alpha.2', '0.2.2-rc.2']) {
   const issue = evaluatePluginCompatibility(manifest, {}, runtime)
   assert.equal(issue.exempted, false)
   assert.deepEqual(issue.requirements, { 'engines.dsh': manifest.engines.dsh })

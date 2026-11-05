@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### DSH 0.2.2-rc.1 compatibility
+
+- Add `0.2.2-rc.1` as an exact supported host in `engines.dsh`, the optional
+  session peer and the compatibility matrix; keep `0.2.1-rc.5` supported.
+- Run published-host gate checks and packed web/headless tests against both
+  releases, including authentication, Native RPC and notify tool registration.
+  Unverified alpha/future release candidates remain rejected; no exemption is used.
+- The new host requires Node >=24.9.0. The plugin's previous desktop and English
+  surface changes are preserved; its package version remains an unreleased 0.13.1.
+
 ### Desktop notifications on macOS: honest health and a real sender identity
 
 - **The green light was lying.** `osascript` exits 0 whether or not macOS shows the

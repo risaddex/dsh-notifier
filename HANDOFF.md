@@ -1,5 +1,18 @@
 # dsh-notifier 当前交接快照
 
+## DSH 0.2.2-rc.1 compatibility follow-up — 2026-11-05
+
+The existing fork branch now declares exactly `0.2.1-rc.5 || 0.2.2-rc.1` in
+`engines.dsh` and the optional session peer, aligned with the host matrix.
+The previous desktop/i18n work from `86eff08` is preserved. On Linux/Node
+24.22.1, **2059/2059 unit tests** and **20/20 packed host checks per runtime**
+passed. The new CLI installs the package without an exemption; an existing
+profile upgrade was also verified. Use a distinct local tarball filename,
+`dsh-notifier-0.13.1-dsh-022-rc1.tgz`, to avoid reusing the old same-version
+manifest. The new host requires Node >=24.9.0. Evidence and reproduction:
+`docs/new-host/evidence/dsh-022-compat.json`, `test/host/README.md`.
+No real macOS/Desktop banner, model turn or provider/device delivery is claimed.
+
 ## English surface follow-up — 2026-11-05
 
 Closed the remaining English gaps of the plugin on `codex/dsh-021-compat`.

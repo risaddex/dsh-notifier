@@ -15,7 +15,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
 const matrix = parseMatrix(readFileSync(resolve(root, 'docs/compatibility-matrix.md'), 'utf8'))
 
-const VERIFIED = ['0.2.1-rc.5']
+const VERIFIED = ['0.2.1-rc.5', '0.2.2-rc.1']
 
 test('host compat: the shipped manifest and matrix verify cleanly', () => {
   assert.notEqual(matrix, null, 'docs/compatibility-matrix.md must carry a dsh-host-matrix block')
@@ -44,7 +44,7 @@ test('host compat: dshWorkshop lists exactly the verified rows', () => {
   assert.deepEqual(verified, VERIFIED)
 })
 
-test('host compat: the authoritative rc.5 engines gate matches the verified versions', () => {
+test('host compat: the authoritative engines gate matches both verified host releases', () => {
   assert.equal(Object.hasOwn(packageJson.engines, 'dsh'), true)
   assert.deepEqual(parsePeerRange(packageJson.engines.dsh), VERIFIED)
 })
@@ -62,7 +62,7 @@ test('host compat: missing, empty and inherited host requirements fail closed', 
 })
 
 test('host compat: engines.dsh cannot silently widen to unverified future hosts', () => {
-  for (const dsh of ['^0.2.1', '>=0.2.1-rc.5', '0.2.1-rc.5 || 0.2.2-alpha.2']) {
+  for (const dsh of ['^0.2.1', '>=0.2.1-rc.5', '0.2.1-rc.5 || 0.2.2-alpha.2', `${VERIFIED.join(' || ')} || 0.2.2-rc.2`]) {
     assert(verifyHostCompat({ ...packageJson, engines: { ...packageJson.engines, dsh } }, matrix).length > 0)
   }
 })
