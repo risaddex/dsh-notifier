@@ -1,4 +1,4 @@
-import { CHANNEL_TYPES, channelFieldsOf } from '../config.mjs'
+import { ADAPTERS, CHANNEL_TYPES, channelFieldsOf } from '../config.mjs'
 import { INBOUND_CHANNELS } from '../inbound/channels-registry.mjs'
 import { toInboundChannelName } from '../inbound/capability-matrix.mjs'
 import { inboundApplyMode, outboundApplyMode } from './apply-mode.mjs'
@@ -64,9 +64,11 @@ export function createChannelProjection({ outboundSource, outboundConfig, inboun
         configRevision: outboundSource?.version ?? 0,
       }) : { configured: false, active: false, fields: {}, applyMode: outboundApplyMode(), configRevision: 0 }
       const evidence = notifyCapable ? (health?.snapshot?.(type) ?? {}) : null
+      // 投递证据等级由 adapter 自述（本地桌面通知 = unverifiable）：健康灯不替用户担保送达。
+      const deliveryEvidence = ADAPTERS[type]?.deliveryEvidence === 'unverifiable' ? 'unverifiable' : 'verifiable'
       const h = notifyCapable
-        ? healthView({ configured: desc.configured, active: desc.active, health: evidence })
-        : healthView({ configured: false, active: false, health: null })
+        ? healthView({ configured: desc.configured, active: desc.active, health: evidence, deliveryEvidence })
+        : healthView({ configured: false, active: false, health: null, deliveryEvidence })
       const inRow = inbound.get(inboundType)
       const inFields = inRow?.fields ?? {}
       const inConfig = inRow?.config ?? {}

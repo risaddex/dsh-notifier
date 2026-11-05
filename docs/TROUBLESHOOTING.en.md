@@ -69,6 +69,19 @@ Check whether the UI reports **Restart pending**.
 ### API test succeeds but no phone message
 Provider acceptance is not the same as confirmed client delivery. Record the provider result and actual client behavior separately.
 
+### Desktop test succeeds but no banner appears (macOS)
+The `desktop` channel shells out to `osascript`, which posts under the **Script Editor**
+identity and exits 0 whether or not macOS actually shows anything — so "test sent" is not
+proof of delivery. Authorize the sender in **System Settings → Notifications**:
+
+- default setup: allow **Script Editor** (the identity `osascript` posts as);
+- if `terminal-notifier` is installed (`brew install terminal-notifier`), the plugin
+  prefers it automatically — allow **terminal-notifier** instead.
+
+Also check Focus / Do Not Disturb and that the banner style is not "None". The channel
+reports **Ready**, not **Healthy**, because delivery cannot be observed — that is
+intentional (see `docs/memory/risks.md`).
+
 ### Pairing fails
 Check private-chat source, code expiry/use, lockout, and identity/account scope.
 

@@ -109,6 +109,11 @@ dsh plugin add dsh-notifier@latest --profile <profile名>
 
 **入站控制 6 个：** Telegram、飞书、QQ 官方机器人、WxPusher、微信 iLink、钉钉。
 
+> **macOS 桌面通知**由 `osascript` 发出，在通知设置里显示为 **Script Editor（脚本编辑器）**
+> （装了 `terminal-notifier` 时插件优先用它，显示为 **terminal-notifier**）。请到
+> **系统设置 → 通知** 允许该发送方；测试成功只说明系统接口被调用，所以该渠道显示
+> **可用 / Ready** 而不是 **正常 / Healthy**。
+
 不同 provider 的按钮、附件、送达回执、重连、账号额度并不一样。项目只按真实证据等级声明能力，详见 [兼容性矩阵](docs/compatibility-matrix.md)。
 
 <details>

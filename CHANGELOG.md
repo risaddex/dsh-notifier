@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+### Desktop notifications on macOS: honest health and a real sender identity
+
+- **The green light was lying.** `osascript` exits 0 whether or not macOS shows the
+  banner, and it posts under the **Script Editor** identity — the notification list
+  never shows `dsh-notifier`, so there was nothing to authorize. The `desktop`
+  adapter now declares `deliveryEvidence: 'unverifiable'`; the control surface maps
+  that to `ready` (可用/Ready) instead of `healthy` unless there is an explicit
+  confirmed receipt, and the view carries `unverifiable: true`. Health no longer
+  vouches for delivery it cannot observe.
+- **Prefer `terminal-notifier` when installed.** Its own app bundle gives a real
+  identity the user can allow in System Settings → Notifications. Detection is a
+  read-only `PATH` scan (`findExecutableOnPath`, no `which` spawn, no shell); when it
+  is absent the historical `osascript` path is unchanged.
+- **Copy names the sender to authorize.** A macOS failure and the channel self-check
+  success both say which app must be allowed (`Script Editor`, or `terminal-notifier`
+  when used) instead of claiming "sent, check the client".
+- Docs: README (both languages), `docs/TROUBLESHOOTING(.en).md`, the generated
+  channel matrix row and `docs/memory/risks.md` (banner display is still not
+  verified in-repo — it needs a human at the machine).
+- Rejected approach, recorded so nobody rebuilds it: an `osacompile` applet pretending
+  to be a `dsh-notifier` app. Direct applet execution does not receive `on run argv`
+  (empty argv → `-1728` and a blocking dialog), and Apple-Event argument passing would
+  require a second Automation TCC grant.
+
 ### English surface for channel metadata, the notify tool and the native panel
 
 - **Channel configuration metadata is bilingual at the source of truth.** Every

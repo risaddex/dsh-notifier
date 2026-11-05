@@ -113,6 +113,11 @@ the agent stays in the session language.
 
 **Inbound control (6):** Telegram, Feishu, QQ official bot, WxPusher, WeChat iLink, DingTalk.
 
+> **macOS desktop notifications** are posted by `osascript`, which appears as **Script Editor**
+> (or **terminal-notifier** when that tool is installed — the plugin prefers it). Allow the
+> sender in **System Settings → Notifications**; a successful test only proves the system call
+> was made, which is why the channel shows **Ready** rather than **Healthy**.
+
 <details>
 <summary><strong>Full channel matrix (generated from the channel registry)</strong></summary>
 
@@ -123,7 +128,7 @@ the agent stays in the session language.
 | `bark` | Bark (iOS) | device key (or self-host URL) | ✅ |
 | `bell` | Terminal bell (local) | — | local |
 | `chanify` | Chanify (iOS) | token (or self-host) | ✅ |
-| `desktop` | Desktop notification (local) | — (Windows needs BurntToast module) | local |
+| `desktop` | Desktop notification (local) | — (macOS: allow the sender in Notifications; Windows needs BurntToast) | local |
 | `dingtalk` | DingTalk custom robot | webhook + secret (HMAC sign) | ✅ |
 | `discord` | Discord webhook | webhook URL | ✅ |
 | `feishu` | Feishu custom bot | webhook (+ sign secret) | ✅ |

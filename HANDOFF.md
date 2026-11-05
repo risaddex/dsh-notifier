@@ -16,7 +16,7 @@ to the previous literals. `package.json.description` (npm summary + DSH plugin
 card) is English, and `.dn-page` now owns a bounded, overscroll-contained scroll
 area so long channel lists are reachable.
 
-Full regression on this machine: **2050 tests, 2048 pass, 2 fail**. The two
+Full regression on this machine: **2059 tests, 2057 pass, 2 fail**. The two
 failures are pre-existing and environmental (`test/public.test.mjs:543` and
 `test/wiring.route.test.mjs:246` expect only `['webhook']`, but macOS also
 resolves the local `bell` / `desktop` channels); both reproduce unchanged on a
@@ -29,6 +29,16 @@ Residual Chinese by design (not user-facing English-UI text): runtime
 `warn`/`info` boot diagnostics, admin `ApiError` messages, and the repository's
 maintainer docs. `test/channel-metadata-i18n.test.mjs` plus the tool/admin-api
 i18n tests fail the build if a channel field loses its English sibling.
+
+Same session, follow-up reported by the user: macOS desktop notifications never
+appeared while the channel showed green. Root cause is that `osascript` posts
+under the **Script Editor** identity and exits 0 regardless of display. `desktop`
+now declares `deliveryEvidence: 'unverifiable'` (control surface shows Ready, never
+Healthy without a confirmed receipt), prefers `terminal-notifier` when it is on
+`PATH`, and the failure/self-check copy names the sender to authorize. The banner
+itself is still not verified in-repo — a human must allow Script Editor /
+terminal-notifier in System Settings → Notifications and confirm. An `osacompile`
+applet was prototyped and rejected (direct applet execution gets no `on run argv`).
 
 ## Fork compatibility follow-up — 2026-11-05
 

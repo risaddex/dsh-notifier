@@ -188,6 +188,19 @@ confirmed delivery
 
 不要为了访问方便改成 `0.0.0.0`。
 
+### 桌面通知测试成功但看不到横幅（macOS）
+
+`desktop` 渠道调用的是 `osascript`，它以 **Script Editor（脚本编辑器）** 的身份发通知，
+而且无论系统是否真的显示都退出 0——「测试已发送」不等于送达。请在
+**系统设置 → 通知** 里允许发送方：
+
+- 默认形态：允许 **Script Editor**（`osascript` 的通知就挂在它名下）；
+- 装了 `terminal-notifier`（`brew install terminal-notifier`）时插件会优先用它，
+  这时要允许 **terminal-notifier**。
+
+另外检查专注模式/勿扰、以及横幅样式没有被设成「无」。该渠道因此显示
+**可用 / Ready** 而不是 **正常 / Healthy**：投递不可观测就不给绿灯（见 `docs/memory/risks.md`）。
+
 ## 如果 AI 能解决
 
 让 AI：
