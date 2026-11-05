@@ -3,6 +3,8 @@
 这是人类和 agent 的导航页。每个问题尽量只指向一个权威来源；运行时真相仍是 `src/` 与 `test/`，版本真相是 `package.json`。
 
 > Development follow-up (2026-11-05): upstream dev has an unreleased DSH `0.2.1-rc.5` migration. The fork compatibility follow-up guards `engines.dsh` and verifies the packed plugin with the published host; see `docs/compatibility-matrix.md`, `test/host/README.md` and `docs/new-host/evidence/issue-51-compat.json`. The v0.13.1 release snapshots below are historical, not a claim that npm latest contains this migration.
+>
+> English surface follow-up (same day): channel configuration metadata is bilingual at the source of truth (`desc`/`descEn`, `label`/`labelEn` in `src/adapters/spec-channels.mjs`, `src/field-hints.mjs` (`FIELD_HINTS`), `src/inbound/channel-config.mjs`), consumed by the Native projection (`src/control-surface/channels.mjs`) and by `createAdminApi({ lang })`; the `notify` tool surface lives in `src/strings.mjs#notifyTool` and follows `lang`; `package.json.description` is English. Guarded by `test/channel-metadata-i18n.test.mjs`, the tool i18n tests and the admin-api language test. Current dev total (2026-11-05): 2050 tests, 2048 pass, 2 environmental failures reproduced on a pristine export — see [HANDOFF.md](../HANDOFF.md). Runtime `warn`/`info` diagnostics, admin `ApiError` copy and maintainer docs remain Chinese by design.
 
 ## 当前基线
 

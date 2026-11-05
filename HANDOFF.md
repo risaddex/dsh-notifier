@@ -1,5 +1,35 @@
 # dsh-notifier 当前交接快照
 
+## English surface follow-up — 2026-11-05
+
+Closed the remaining English gaps of the plugin on `codex/dsh-021-compat`.
+Channel configuration metadata is now bilingual at the source of truth: every
+Chinese `desc` / `label` in `src/adapters/spec-channels.mjs`, `src/field-hints.mjs`
+(`FIELD_HINTS`, split out of `src/config.mjs`) and
+`src/inbound/channel-config.mjs` carries a `descEn` / `labelEn` sibling. Both consumers pick the slot — the Native projection
+(`src/control-surface/channels.mjs`) emits `description: { en, zh }`, and
+`createAdminApi({ lang })` returns a field table whose `desc` is already
+localized for the Advanced Console — each with a Chinese fallback for
+untranslated fields. The `notify` / `notify_test` tool surface moved into
+`src/strings.mjs#notifyTool` and follows `lang`, with `zh` output byte-identical
+to the previous literals. `package.json.description` (npm summary + DSH plugin
+card) is English, and `.dn-page` now owns a bounded, overscroll-contained scroll
+area so long channel lists are reachable.
+
+Full regression on this machine: **2050 tests, 2048 pass, 2 fail**. The two
+failures are pre-existing and environmental (`test/public.test.mjs:543` and
+`test/wiring.route.test.mjs:246` expect only `['webhook']`, but macOS also
+resolves the local `bell` / `desktop` channels); both reproduce unchanged on a
+pristine `git archive HEAD` export (2040 tests, 2038 pass, 2 fail). `npm run
+verify:release`, `node scripts/gen-channel-matrix.mjs --check` and `node --check
+src/index.mjs` pass. The 2011-test row below stays the published v0.13.1
+baseline: no version bump, tag, release or upstream PR was created.
+
+Residual Chinese by design (not user-facing English-UI text): runtime
+`warn`/`info` boot diagnostics, admin `ApiError` messages, and the repository's
+maintainer docs. `test/channel-metadata-i18n.test.mjs` plus the tool/admin-api
+i18n tests fail the build if a channel field loses its English sibling.
+
 ## Fork compatibility follow-up — 2026-11-05
 
 `codex/dsh-021-compat` builds on upstream dev `aabc7d7` and retains its exact

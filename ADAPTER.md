@@ -56,6 +56,12 @@ slack: {
 4. 消费 `msg.level` / `msg.silent` 实现渠道原生分级语义（如 ntfy 的 `X-Priority`、
    telegram 的 `disable_notification`），让路由矩阵能落到渠道语义上。
 5. 移植代码在文件头标注来源仓库与 commit hash（见 `THIRD_PARTY_NOTICES.md`）。
+6. **元数据双语**：渠道配置文案是 UI 素材，中文 `desc` / `label` 旁边必须同时给
+   `descEn` / `labelEn`（英文、ASCII 标点、保留全部技术事实：去哪里拿凭证、取值范围、
+   默认值）。中文 `desc` 继续作为错误文案素材，不做翻译替换；投影层
+   （`src/control-surface/channels.mjs`）按语言取槽，缺 `descEn` 时回落中文。
+   `test/channel-metadata-i18n.test.mjs` 静态守卫覆盖（含 `src/field-hints.mjs` 的
+   `FIELD_HINTS` 与 `src/inbound/channel-config.mjs`）。
 
 ## 3. 代码适配器（token 型/多步控制流）
 

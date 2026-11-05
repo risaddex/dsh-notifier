@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+### English surface for channel metadata, the notify tool and the native panel
+
+- **Channel configuration metadata is bilingual at the source of truth.** Every
+  Chinese `desc` / `label` in the declaration tables now carries an English
+  sibling (`descEn` / `labelEn`) in `src/adapters/spec-channels.mjs`,
+  `src/field-hints.mjs` (`FIELD_HINTS`, split out of `src/config.mjs`) and
+  `src/inbound/channel-config.mjs`. Two
+  consumers pick the slot: the control-surface projection
+  (`src/control-surface/channels.mjs`) fills `description: { en, zh }` for the
+  Native panel, and `createAdminApi` (`lang` option) hands the Advanced Console a
+  field table whose `desc` is already localized. Both keep a Chinese fallback for
+  fields that have no translation yet, so the payload shapes and older tables
+  keep working. This is the text an English UI renders under each form input —
+  previously the `en` slot held the Chinese string (e.g. the `bell` ring-count
+  hint "响铃次数 1-5（默认 1）").
+- **The `notify` tool follows the existing `lang` switch.** Tool description,
+  parameter descriptions and rendered tool results moved from hardcoded Chinese
+  literals into a new `notifyTool` section of `src/strings.mjs`, resolved through
+  `stringsOf(lang)`; `src/index.mjs` passes the already-computed `strings` into
+  `registerNotifyTool`. `lang: 'zh'` output is byte-identical, `lang: 'en'`
+  yields English metadata, and a caller without `strings` keeps the zh default.
+- **Native panel scrolls its own content.** The page root had no scroll
+  container, so a long channel list (`/channels`) overflowed the panel with an
+  invisible, unreachable tail. `.dn-page` now owns a bounded,
+  overscroll-contained scroll area with theme-token scrollbar styling, and keeps
+  auto-height behaviour when the host does not constrain the panel.
+- **English package metadata.** `package.json.description` (the DSH plugin card
+  and npm summary, which were Chinese-only) is now English and states the
+  English/Chinese UI.
+- **Guard tests** (`test/channel-metadata-i18n.test.mjs`): reject any channel
+  field, channel label or channel description whose Chinese text has no
+  CJK-free English sibling; assert the projection fills both slots distinctly;
+  keep the zh fallback for untranslated fields; forbid a Chinese package
+  description.
+
 ### DSH 0.2.1 compatibility verification (#51)
 
 - Verify the authoritative own `engines.dsh` requirement alongside the optional
