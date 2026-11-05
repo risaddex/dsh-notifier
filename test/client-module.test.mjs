@@ -226,3 +226,14 @@ test('static safety invariants remain true', () => {
   assert.match(source, /data-error-code/)
   assert.match(source, /if \(fields\[key\]\?\.secret === true\) delete nextDirection\[key\]/)
 })
+
+test('native panel: the page owns its scroll area so long channel lists stay reachable', () => {
+  const source = readFileSync(new URL('../client.js', import.meta.url), 'utf8')
+  const rule = source.match(/\.dn-page\{[^}]*\}/)
+  assert.ok(rule, '.dn-page 规则必须存在')
+  assert.match(rule[0], /height:100%/, '内容区取宿主可用高度')
+  assert.match(rule[0], /overflow-y:auto/, '内容超出时必须可滚动，而不是被裁掉')
+  assert.match(rule[0], /overscroll-behavior:contain/, '滚动不传递给宿主页面')
+  assert.match(rule[0], /scrollbar-width:thin/, '滚动条在 Firefox 下可见')
+  assert.match(source, /\.dn-page::-webkit-scrollbar-thumb\{/, '滚动条按主题 token 可见（WebKit）')
+})
