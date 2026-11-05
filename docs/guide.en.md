@@ -188,6 +188,10 @@ insert:
 
 Prefer `${ENV:NAME}` for credentials and never commit secrets.
 
+Add `lang: en` to the same `config` block to get English phone notifications, English
+`notify` tool text and an English Advanced Console (default `zh`). The Native
+**Notify & Control** panel follows the DSH UI language instead.
+
 CLI examples:
 
 ```bash

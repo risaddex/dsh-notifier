@@ -284,6 +284,9 @@ ${ENV:NAME}
 
 不要把 Token 提交到 Git 仓库。
 
+同一个 `config` 里写 `lang: en`，手机通知、`notify` 工具文案与高级管理台即切英文
+（默认 `zh`）。Native「通知与控制」面板跟随 DSH 界面语言，不看这个键。
+
 CLI 适合登录和诊断，例如：
 
 ```bash
