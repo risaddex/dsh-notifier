@@ -1,0 +1,99 @@
++{
+  "date": "2026-11-05",
+  "issue": "https://github.com/THEWOLFWALKER/dsh-notifier/issues/51",
+  "scope": "Compatibility follow-up on the existing upstream dev migration; no upstream PR or release.",
+  "baseCommit": "aabc7d76f1b2e07f88388f7c9ce167ab0be07e48",
+  "codeCommit": "a8d639179091158cdc5c64d5c3b8a77230225565",
+  "forkBranch": "risaddex/dsh-notifier:codex/dsh-021-compat",
+  "runtime": {
+    "dsh": "0.2.1-rc.5",
+    "node": "24.22.1",
+    "cordis": "4.0.5",
+    "pnpm": "10.32.1",
+    "platform": "linux-x64"
+  },
+  "manifest": {
+    "pluginVersion": "0.13.1",
+    "enginesDsh": "0.2.1-rc.5",
+    "optionalSessionPeer": "0.2.1-rc.5",
+    "versionBump": false
+  },
+  "validation": {
+    "unit": {
+      "command": "DSH_HOME=<disposable-directory> npm test",
+      "tests": 2040,
+      "pass": 2040,
+      "fail": 0,
+      "skip": 0
+    },
+    "publishedHostGate": {
+      "command": "node test/host/harness.compat.mjs",
+      "checks": 4,
+      "pass": 4,
+      "noExemptions": true,
+      "reproducedLegacyRejectionOn": [
+        "0.2.1-rc.2",
+        "0.2.1-rc.5"
+      ],
+      "accepted": [
+        "0.2.1-rc.5"
+      ],
+      "unverifiedVersionsRejected": [
+        "0.1.7-rc.2",
+        "0.2.1-rc.2",
+        "0.2.1-rc.6",
+        "0.2.2-alpha.2"
+      ]
+    },
+    "packedHostSmoke": {
+      "command": "DSH_NOTIFIER_PLUGIN_ROOT=<unpacked-tarball> node test/host/harness.smoke.mjs",
+      "checks": 19,
+      "pass": 19,
+      "fail": 0,
+      "profiles": [
+        "web",
+        "headless"
+      ],
+      "nativeRpc": [
+        "surface.home",
+        "channels.list"
+      ],
+      "browserAuthentication": "temporary launch URL exchanged for signed cookie; unauthenticated RPC returned 401",
+      "projection": {
+        "outboundChannels": 28,
+        "totalRows": 29
+      },
+      "localWebhookDelivered": true,
+      "headlessModelExit": "MISSING_CREDENTIAL after successful notifier activation and local webhook delivery"
+    },
+    "cliInstall": {
+      "command": "node <pinned-host>/node_modules/@deepseek-ai/dsh/lib/bin.js plugin --profile web add <absolute-tarball> --ignore-scripts",
+      "result": "success",
+      "dumpConfig": "composes dsh-notifier without skipping",
+      "noCompatibilityExemption": true,
+      "dshHome": "disposable directory under /tmp",
+      "optionalDependencies": "included"
+    },
+    "guards": [
+      "node scripts/verify-host-compat.mjs",
+      "node scripts/verify-release.mjs",
+      "node scripts/gen-channel-matrix.mjs --check",
+      "node --check src/index.mjs",
+      "git diff --check"
+    ]
+  },
+  "review": {
+    "enginePrecedence": "Correct peers cannot hide stale/missing/inherited/widened engines.dsh in the repository guard.",
+    "hostIsolation": "No daily DSH profile or provider credentials used. Host optional native binding is required; install scripts stayed disabled.",
+    "packageEvidence": "Runtime was tested from an unpacked npm tarball, not only the source checkout.",
+    "projectionAssertion": "Count notify-capable rows rather than treating inbound-only rows as additional outbound channels."
+  },
+  "limitations": [
+    "Only DSH 0.2.1-rc.5 is declared; the rc.2 runtime in #51 still requires upgrading.",
+    "The existing upstream dev migration contains other in-progress state/admission changes; this follow-up should target upstream dev.",
+    "No macOS/Desktop visual UI walkthrough, full model turn or real provider/device delivery was exercised.",
+    "No npm publication, tag, release, upstream comment or upstream PR was created.",
+    "The earlier security findings are not fixed by this compatibility-only change.",
+    "Passing --no-optional to the real install command produced an optional-dependency lockfile error with pnpm 10.32.1; normal optional-inclusive installation succeeded."
+  ]
+}

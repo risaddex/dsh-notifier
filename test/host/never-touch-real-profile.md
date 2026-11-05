@@ -2,7 +2,8 @@
 
 The real DSH home (`~/.dsh`) belongs to the maintainer and is OUT OF BOUNDS for
 every test in this repo. Only throwaway homes under
-`/home/orca/work/dsh-notifier-rc5/scratch/` (`dshhome-*`) may be created,
+the configured `DSH_NOTIFIER_SCRATCH_ROOT` (default: a per-process OS temporary
+directory, `dsh-notifier-host-tests-<pid>/`) may be created,
 written, or deleted.
 
 `harness.mjs` enforces this: `assertNotRealDshHome(p)` throws when any target

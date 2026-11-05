@@ -1,5 +1,19 @@
 # dsh-notifier 当前交接快照
 
+## Fork compatibility follow-up — 2026-11-05
+
+`codex/dsh-021-compat` builds on upstream dev `aabc7d7` and retains its exact
+DSH `0.2.1-rc.5` requirement. The guard now checks `engines.dsh` as well as peers
+and matrix metadata; the real-host harness runs outside the maintainer's machine
+and can verify an unpacked tarball. Full regression: **2040 pass, 0 fail, 0 skip**.
+CLI tarball installation and web/headless local-host checks need no compatibility
+exemption. Reproduce with `test/host/README.md`; evidence is recorded in
+`docs/new-host/evidence/issue-51-compat.json`. Open the follow-up against upstream
+**dev**; no upstream PR, merge, version bump, tag or release was created.
+The 2011-test row below is the published v0.13.1 baseline, not the current dev total.
+
+## Published v0.13.1 baseline (historical)
+
 > **v0.13.1 发布收口（2026-09-26）**：`dev` 已完成管理台 i18n、公开能力证据边界、npm 包文档白名单与高风险复核；本版本按正式流程推进 `dev → main`、tag、GitHub Release 与 npm 发布。全量 `npm test` 为 **2011 tests / 2011 pass / 0 fail / 0 skip**，`npm run verify:release` 通过。真实 DSH 真机、provider 账号与真实投递回执未在本次收口中新增验证，继续保持 open，见 `docs/memory/risks.md`。
 
 更新时间：2026-09-26。当前发行线 **v0.13.1**：canonical outbound config、Native/Admin 服务收敛、provider handshake/deadline、durable cursor、epoch/revision 生命周期、structured RPC errors、ErrorBoundary、管理台双语资源、证据边界与 npm payload 白名单均已落地并通过契约回归。npm、`main`、tag 与 GitHub Release 按本次 release closeout 收口，外部 provider/真机证据仍以 `docs/memory/risks.md` 为准。

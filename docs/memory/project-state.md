@@ -1,5 +1,7 @@
 # Project state
 
+- Compatibility follow-up (2026-11-05): the fork branch `codex/dsh-021-compat` is based on upstream dev `aabc7d7`, not published main. The authoritative `engines.dsh` is now guarded against peer/matrix drift; the portable real-host harness accepts an unpacked tarball. Full regression is 2040/2040; CLI tarball installation and isolated rc.5 web/headless activation are verified without exemptions. See `docs/new-host/evidence/issue-51-compat.json` and `test/host/README.md`. No new release or provider/device evidence is claimed; older release snapshots below remain historical.
+
 > Release state (2026-09-27): `v0.13.1` is published. The tag and GitHub Release point to `9e0d3b6`; npm latest is `0.13.1`. `main` has a documentation-only follow-up at `c87f788`, and `dev` is aligned at `c6444a5`. No fresh real-device/provider-account evidence was added; those boundaries remain open in `risks.md`.
 
 Historical snapshot: 2026-09-25. Release line **v0.12.0** (Native Control Surface + live outbound hot-apply + outbound state migration; **1831 tests, all pass**; **published**). It remains the prior minor release reference; the v0.13.1 line preserves its canonical `channel:<type>:outbound` state and Native/Admin control-surface contract while adding the hardening recorded above. Previous release line **v0.11.0** (1816 tests, all pass). Test-count baselines in release guards are updated at train close, not per-commit.

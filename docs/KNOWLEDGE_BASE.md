@@ -2,7 +2,7 @@
 
 这是人类和 agent 的导航页。每个问题尽量只指向一个权威来源；运行时真相仍是 `src/` 与 `test/`，版本真相是 `package.json`。
 
-> 当前工作线：`v0.13.1` 已完成正式发布（tag、GitHub Release、npm latest）；`dev` 与 `main` 的发布内容已对齐，后续仅保留文档跟进和真实 provider/真机证据缺口。
+> Development follow-up (2026-11-05): upstream dev has an unreleased DSH `0.2.1-rc.5` migration. The fork compatibility follow-up guards `engines.dsh` and verifies the packed plugin with the published host; see `docs/compatibility-matrix.md`, `test/host/README.md` and `docs/new-host/evidence/issue-51-compat.json`. The v0.13.1 release snapshots below are historical, not a claim that npm latest contains this migration.
 
 ## 当前基线
 

@@ -1,6 +1,6 @@
 # Optional SDK and DSH host compatibility matrix
 
-Snapshot: 2026-09-25.
+Development compatibility verification: 2026-11-05. Published `0.13.1` remains a separate, older artifact.
 
 This document separates three evidence levels:
 
@@ -38,18 +38,37 @@ Declared host requirement (`engines.dsh`):
 `unmetRequirements`): once a plugin declares its own `engines.dsh`, its
 `@deepseek-ai/dsh*` peers are ignored. The optional peer marker
 `@deepseek-ai/dsh-session` is declared at the same line (`0.2.1-rc.5`), and
-`scripts/verify-host-compat.mjs` keeps the peer range, this matrix and
+`scripts/verify-host-compat.mjs` keeps the own `engines.dsh` declaration, peer range, this matrix and
 `dshWorkshop.compatibility.dshVersions` aligned.
 
 | DSH | Core Session/Message seams | Native client dependency/slot seams | Native Control Surface evidence | Evidence level |
 |---|---|---|---|---|
-| `0.2.1-rc.5` | compatible with the rc.5 host contract set (tools/agents/connection/webServer seams present) | connection / locale / renderer / layout / sidebar / plugin-manager packages present; global panel slots exist | plugin activates with no exemption; Native Control Surface mounts in the web profile; headless activates with the notify tool + `ctx.notifier` and no Native RPC | **contract/source verified** |
+| `0.2.1-rc.5` | compatible with the rc.5 host contract set (tools/agents/connection/webServer seams present) | connection / locale / renderer / layout / sidebar / plugin-manager packages present; global panel slots exist | packed plugin boots in web/headless; browser-authenticated Native RPC responds; notify probe reaches a local HTTP receiver; actual CLI tarball installation needs no exemption | **host smoke verified** |
 | `0.1.0-rc.6` | historical only | current Native surface not re-certified | old historical plugin verification only | **unverified** |
 
 Peer range: `0.2.1-rc.5`.
 
-No row is `real-device-verified`; the current row is source/artifact evidence.
+No row is `real-device-verified`; the current row has source/artifact and isolated-host evidence.
 The `0.1.7-*` family is no longer a supported target (removed with the rc.5 line).
+
+### Issue #51: published package versus development source
+
+The issue reports `dsh-notifier@0.13.1` being rejected by DSH `0.2.1-rc.2`.
+The upstream development migration targets **only `0.2.1-rc.5`**, not every
+`0.2.x` runtime. It is not yet a new npm release. Its authoritative
+`engines.dsh`, optional peer and Workshop metadata all identify that exact host.
+Changing a peer alone cannot override a stale `engines.dsh` in rc.5.
+
+Reproducible installation/boot checks are documented in
+[`test/host/README.md`](../test/host/README.md). The published host evaluator
+reproduces the old manifest's rejection, accepts this development manifest on
+rc.5 without an exemption, and still rejects rc.2 and unverified future hosts.
+The smoke uses the temporary web process's launch-token exchange to obtain a
+browser cookie; unauthenticated Native RPC remains rejected with `401`.
+The channel projection includes 28 outbound channels and an additional
+inbound-only row; its total row count is not the outbound channel count.
+
+Provider/device delivery and a visual browser walkthrough remain unverified.
 
 ### Inbound file attachment boundary
 
