@@ -6,7 +6,7 @@
 //     (profiles/<name>/package.json `dsh.profile.bundles` + a plugin payload
 //     under profiles/<name>/node_modules/<pkg>). This mirrors exactly the
 //     recipe the T02 agent used, because `dsh plugin --profile <name> add`
-//     forwards to pnpm and pnpm is NOT installed in this environment.
+//     forwards to pnpm; the smoke does not require a package-manager command.
 //   * Booting spawns the real `dsh` CLI with DSH_HOME pointing at our
 //     throwaway home, with a bounded timeout and a guaranteed kill (never
 //     leaves an orphan process).
@@ -28,7 +28,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from 'node:fs'
-import { homedir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -38,18 +38,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export const REPO_ROOT = resolve(__dirname, '..', '..')
 
 /** The ONLY directory we are ever allowed to create DSH_HOMEs under. */
-export const SCRATCH_ROOT = '/home/orca/work/dsh-notifier-rc5/scratch'
+export const SCRATCH_ROOT = resolve(process.env.DSH_NOTIFIER_SCRATCH_ROOT
+  || join(tmpdir(), `dsh-notifier-host-tests-${process.pid}`))
 
 /** The real, sacred profile home. Any path resolution that lands here throws. */
 export const REAL_DSH_HOME = join(homedir(), '.dsh')
 
 /** The pinned DSH 0.2.1-rc.5 CLI entrypoint (host install, not the repo). */
-export const DSH_CLI =
-  '/home/orca/work/dsh-notifier-rc5/dsh-host/node_modules/@deepseek-ai/dsh/lib/bin.js'
+const hostRoot = resolve(process.env.DSH_NOTIFIER_HOST_ROOT || join(tmpdir(), 'dsh-notifier-rc5-host'))
+export const DSH_CLI = join(hostRoot, 'node_modules/@deepseek-ai/dsh/lib/bin.js')
 
 /** The host packages (base bundles) live next to the CLI. */
-export const DSH_HOST_NODE_MODULES =
-  '/home/orca/work/dsh-notifier-rc5/dsh-host/node_modules'
+export const DSH_HOST_NODE_MODULES = join(hostRoot, 'node_modules')
 
 // ── path guards ────────────────────────────────────────────────────────────
 
@@ -601,7 +601,7 @@ export function readPluginState(dir) {
 
 // ── misc helpers ───────────────────────────────────────────────────────────
 
-/** True when pnpm resolves on PATH (expected FALSE in this environment). */
+/** True when pnpm resolves on PATH (diagnostic only; the smoke uses bundle loading). */
 export function hasPnpm() {
   const dirs = (process.env.PATH ?? '').split(':').filter(Boolean)
   return dirs.some((d) => existsSync(join(d, 'pnpm')))

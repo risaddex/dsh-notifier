@@ -44,6 +44,29 @@ test('host compat: dshWorkshop lists exactly the verified rows', () => {
   assert.deepEqual(verified, VERIFIED)
 })
 
+test('host compat: the authoritative rc.5 engines gate matches the verified versions', () => {
+  assert.equal(Object.hasOwn(packageJson.engines, 'dsh'), true)
+  assert.deepEqual(parsePeerRange(packageJson.engines.dsh), VERIFIED)
+})
+
+test('host compat: correct peers cannot hide a stale engines.dsh installation gate', () => {
+  const stale = { ...packageJson, engines: { ...packageJson.engines, dsh: '0.1.7-rc.2' } }
+  assert(verifyHostCompat(stale, matrix).some((message) => /engines.dsh must match/.test(message)))
+})
+
+test('host compat: missing, empty and inherited host requirements fail closed', () => {
+  for (const engines of [{ node: '>=22' }, { dsh: '' }, Object.create({ dsh: VERIFIED[0] })]) {
+    assert(verifyHostCompat({ ...packageJson, engines }, matrix)
+      .some((message) => /engines.dsh must be an own/.test(message)))
+  }
+})
+
+test('host compat: engines.dsh cannot silently widen to unverified future hosts', () => {
+  for (const dsh of ['^0.2.1', '>=0.2.1-rc.5', '0.2.1-rc.5 || 0.2.2-alpha.2']) {
+    assert(verifyHostCompat({ ...packageJson, engines: { ...packageJson.engines, dsh } }, matrix).length > 0)
+  }
+})
+
 test('host compat: the historical 0.1.0-rc.6 claim is marked unverified and excluded', () => {
   const row = matrix.runtimes.find((entry) => entry.version === '0.1.0-rc.6')
   assert.notEqual(row, undefined)

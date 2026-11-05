@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### DSH 0.2.1 compatibility verification (#51)
+
+- Verify the authoritative own `engines.dsh` requirement alongside the optional
+  session peer, compatibility matrix and Workshop metadata. Regression tests
+  reject a missing, inherited, stale or widened host requirement.
+- Make the disposable rc.5 host harness portable with configurable host/scratch
+  roots and an unpacked-package input. Verify the published installation gate,
+  browser-authenticated Native RPC and headless local-webhook delivery.
+- Document successful CLI tarball installation on DSH `0.2.1-rc.5` without an
+  exact-version exemption. This follows the existing dev migration; it does not
+  declare rc.2/future-host support or publish a replacement for npm `0.13.1`.
+
 ### 命令准入与来源统一（T04）
 
 - **单一准入路径**：每一条入站动作——slash 命令、未知 slash、纯媒体消息、按钮回调、编号

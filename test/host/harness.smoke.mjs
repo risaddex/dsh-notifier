@@ -34,6 +34,8 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PROBE_DIR = join(__dirname, 'fixtures', 'smoke-probe')
+// Set this to an unpacked npm tarball to verify the actual distributable.
+const pluginRoot = process.env.DSH_NOTIFIER_PLUGIN_ROOT || undefined
 
 // ── tiny test reporter ─────────────────────────────────────────────────────
 const results = []
@@ -83,6 +85,7 @@ async function main() {
     homes.push(webHome)
     installPluginIntoProfile({
       home: webHome.home,
+      repoRoot: pluginRoot,
       profile: 'web',
       bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'],
     })
@@ -112,6 +115,46 @@ async function main() {
     } catch {
       webSignal = ''
     }
+    const address = /dsh web: (http:\/\/127\.0\.0\.1:\d+)/.exec(web.output())?.[1]
+    let cookie = ''
+    try {
+      // rc.5 requires browser authentication even for a loopback RPC caller.
+      // Exchange this disposable process's launch token, never print it.
+      const launch = /dsh web: (http:\/\/127\.0\.0\.1:\d+\/\?token=[^\s]+)/.exec(web.output())?.[1]
+      const login = await fetch(launch, { redirect: 'manual', signal: AbortSignal.timeout(5000) })
+      if (login.status === 303) cookie = login.headers.get('set-cookie')?.split(';', 1)[0] || ''
+    } catch { /* Missing bootstrap authentication must fail the smoke. */ }
+    record('web launch token exchanges for a browser cookie', cookie !== '')
+    let unauthenticatedStatus = 0
+    try {
+      const response = await fetch(`${address}/dsh-notifier/surface.home`, {
+        method: 'POST', headers: { 'content-type': 'application/json', origin: address },
+        body: JSON.stringify({ type: 'client-request', rpcId: 'no-auth', method: 'surface.home', payload: {} }),
+        signal: AbortSignal.timeout(5000),
+      })
+      unauthenticatedStatus = response.status
+      await response.body?.cancel()
+    } catch { /* Network failure is not evidence of authentication enforcement. */ }
+    record('Native RPC rejects an unauthenticated caller', unauthenticatedStatus === 401)
+    for (const method of ['surface.home', 'channels.list']) {
+      let valid = false
+      let detail = ''
+      try {
+        const response = await fetch(`${address}/dsh-notifier/${method}`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: address, cookie },
+          body: JSON.stringify({ type: 'client-request', rpcId: 'compat-smoke', method, payload: {} }),
+          signal: AbortSignal.timeout(5000),
+        })
+        const reply = await response.json()
+        detail = `status ${response.status}, channels ${reply.result?.value?.channels?.length ?? 'n/a'}, error ${reply.result?.error?.code ?? 'none'}`
+        valid = response.status === 200 && reply.type === 'server-response'
+          && reply.rpcId === 'compat-smoke' && reply.result?.ok === true
+          && (method !== 'channels.list'
+            || reply.result.value?.channels?.filter((row) => row.capabilities?.notify === true).length === 28)
+      } catch { /* A missing/failed Native channel is a failed compatibility check. */ }
+      record(`Native RPC ${method} answers with a valid envelope`, valid, detail)
+    }
     await web.stop()
     const webOutput = web.output()
     const webChannel = /\[dsh-notifier\][^\n]*渠道/.test(webOutput)
@@ -134,6 +177,7 @@ async function main() {
     const hookUrl = receiver.url('/hook')
     installPluginIntoProfile({
       home: hlHome.home,
+      repoRoot: pluginRoot,
       profile: 'headless',
       bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-headless'],
       cordisPatchYaml:
