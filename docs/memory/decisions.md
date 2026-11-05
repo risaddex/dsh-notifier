@@ -55,3 +55,7 @@ WeChat iLink starts as a single-account, QR-first personal channel. Internal acc
 ## Optional SDK Acceptance
 
 An external SDK may be used only when its source/package license is clear, maintenance is active, security behavior is reviewable, and it can be lazy-loaded without making runtime dependencies mandatory. Unlicensed projects and `UNLICENSED` connectors are design references only, never copied or redistributed.
+
+## Bilingual Surface Ownership
+
+UI copy splits by audience, and each surface has exactly one owner for its language switch. Text the plugin authors (phone notifications, `notify` tool metadata/results, Advanced Console, admin API error copy) follows the plugin's `lang` config through `src/strings.mjs` and the admin string tables. Text the host authors, including the Native **Notify & Control** panel, follows the DSH UI language through the `{ en, zh }` slots the control-surface projection emits. Channel configuration metadata keeps the Chinese `desc` / `label` as the error-copy source of truth in the declaration tables and pairs it with `descEn` / `labelEn` for the English slot; `test/channel-metadata-i18n.test.mjs` fails the build when a Chinese field lacks its English sibling, so new channels are born bilingual rather than translated later.

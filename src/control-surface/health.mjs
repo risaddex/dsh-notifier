@@ -78,20 +78,32 @@ export function createSurfaceHealth({ window = 20, now = Date.now } = {}) {
   }
 }
 
-export function healthState({ configured, active, health }) {
+/**
+ * @param {object} params
+ * @param {boolean} params.configured
+ * @param {boolean} params.active
+ * @param {object} params.health - snapshot(type) 产物。
+ * @param {'verifiable'|'unverifiable'} [params.deliveryEvidence] - adapter 声明的证据等级。
+ *   unverifiable（如本地桌面通知：命令退出 0 只说明系统接口被调用，屏幕是否出现插件看不到）
+ *   时 accepted 不给绿灯，只有显式 confirmed 才算 healthy——健康灯不得替用户担保送达。
+ */
+export function healthState({ configured, active, health, deliveryEvidence = 'verifiable' }) {
   if (configured !== true) return 'unconfigured'
   if (active !== true) return 'degraded'
   if ((health?.failed ?? 0) > 0 && (health?.lastFailureAt ?? 0) >= (health?.lastSuccessAt ?? 0)) return 'degraded'
   // v0.13（C11.5 / R4）：provider accepted 即视为操作健康（标签与证据强度在 UI 层区分，
   // 「已发送到提供方」≠「已确认送达」）；healthy 不再依赖端到端 confirmed 证据。
-  if ((health?.delivered ?? 0) > 0 || (health?.accepted ?? 0) > 0) return 'healthy'
+  const confirmed = (health?.delivered ?? 0) > 0
+  if (deliveryEvidence === 'unverifiable') return confirmed ? 'healthy' : 'ready'
+  if (confirmed || (health?.accepted ?? 0) > 0) return 'healthy'
   return 'ready'
 }
 
-export function healthView({ configured, active, health }) {
+export function healthView({ configured, active, health, deliveryEvidence = 'verifiable' }) {
   const h = health ?? blank('')
   return {
-    state: healthState({ configured, active, health: h }),
+    state: healthState({ configured, active, health: h, deliveryEvidence }),
+    ...(deliveryEvidence === 'unverifiable' ? { unverifiable: true } : {}),
     delivered: Number(h.delivered ?? 0),
     accepted: Number(h.accepted ?? 0),
     skipped: Number(h.skipped ?? 0),

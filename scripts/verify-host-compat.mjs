@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Host compatibility guard: keep the declared @deepseek-ai/dsh-session peer range, the
+// Host compatibility guard: keep the authoritative engines.dsh requirement, peer range, the
 // DSH host matrix in docs/compatibility-matrix.md, and dshWorkshop.compatibility.dshVersions
 // in one mechanically checked contract. Zero runtime dependencies: only exact or `||`-joined
 // exact versions are accepted, so a hand-written parser replaces the `semver` package.
@@ -60,6 +60,20 @@ export function verifyHostCompat(packageJson, matrix) {
     check(EXACT_VERSION.test(alternative),
       `peer range segment is not an exact version (no ^/>=/* guessing allowed): ${JSON.stringify(alternative)}`)
   }
+
+  // DSH 0.2.1-rc.5 checks an own engines.dsh declaration before inspecting peers.
+  // A correct optional peer cannot compensate for a stale engines requirement.
+  const engines = packageJson?.engines
+  const ownEngine = engines !== null && typeof engines === 'object' && Object.hasOwn(engines, 'dsh')
+  check(ownEngine && typeof engines.dsh === 'string' && engines.dsh.trim() !== '',
+    'engines.dsh must be an own, non-empty host compatibility declaration')
+  const engineAlternatives = parsePeerRange(ownEngine ? engines.dsh : '')
+  for (const alternative of engineAlternatives) {
+    check(EXACT_VERSION.test(alternative),
+      `engines.dsh segment is not an exact version: ${JSON.stringify(alternative)}`)
+  }
+  check(JSON.stringify(engineAlternatives) === JSON.stringify(alternatives),
+    'engines.dsh must match the verified optional peer range')
 
   const meta = packageJson?.peerDependenciesMeta
   const optionalPeer = meta !== null && typeof meta === 'object' ? meta[peerPackage] : undefined

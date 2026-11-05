@@ -5,6 +5,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import * as desktop from '../src/adapters/desktop.mjs'
+import { chmodSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { NotifyError } from '../src/adapters/_shared.mjs'
 
 const MSG = { title: '任务完成', content: 'agent 已结束', level: 'active' }
@@ -248,4 +251,72 @@ test('send: win32 探测失败折叠为 false → 抛安装指引而非探测异
   } finally {
     Object.defineProperty(process, 'platform', { value: original, configurable: true })
   }
+})
+
+// ---------- macOS 通知身份（Script Editor → terminal-notifier / 点名授权）----------
+
+test('darwin: 装了 terminal-notifier 时走它，标题/正文/提示音各自成参数', () => {
+  const tn = { kind: 'terminal-notifier', file: '/opt/homebrew/bin/terminal-notifier' }
+  const loud = desktop.buildDesktopCommand('darwin', { sound: 'always' }, MSG, tn)
+  assert.equal(loud.file, '/opt/homebrew/bin/terminal-notifier')
+  assert.deepEqual(loud.args, ['-title', MSG.title, '-message', MSG.content, '-sound', 'Ping'])
+  const quiet = desktop.buildDesktopCommand('darwin', { sound: 'never' }, { ...MSG, level: 'timeSensitive' }, tn)
+  assert.deepEqual(quiet.args, ['-title', MSG.title, '-message', MSG.content])
+})
+
+test('darwin: 恶意字符在 terminal-notifier 路径下也只是字面 argv', () => {
+  const evil = { title: 'a"b\\c', content: '$(rm -rf /) ; echo "x"', level: 'timeSensitive' }
+  const cmd = desktop.buildDesktopCommand('darwin', { sound: 'always' }, evil, { kind: 'terminal-notifier', file: '/x/tn' })
+  assert.deepEqual(cmd.args, ['-title', evil.title, '-message', evil.content, '-sound', 'Ping'])
+})
+
+test('darwin: 未探测 / 回落策略时仍是 osascript（历史行为不变）', () => {
+  assert.equal(desktop.buildDesktopCommand('darwin', { sound: 'auto' }, MSG, null).file, 'osascript')
+  assert.equal(desktop.buildDesktopCommand('darwin', { sound: 'auto' }, MSG, { kind: 'osascript', file: 'osascript' }).file, 'osascript')
+})
+
+test('findExecutableOnPath：只认 PATH 里真实可执行的文件，不 spawn which', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-notifier-path-'))
+  const exe = join(dir, 'terminal-notifier')
+  writeFileSync(exe, '#!/bin/sh\n')
+  chmodSync(exe, 0o755)
+  writeFileSync(join(dir, 'not-executable'), 'x')
+  assert.equal(desktop.findExecutableOnPath('terminal-notifier', dir), exe)
+  assert.equal(desktop.findExecutableOnPath('missing', dir), null)
+  assert.equal(desktop.findExecutableOnPath('not-executable', dir), null, '非可执行文件不算')
+})
+
+test('resolveMacStrategy：PATH 里有 terminal-notifier 就用它，且进程内缓存一次', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-notifier-tn-'))
+  const exe = join(dir, 'terminal-notifier')
+  writeFileSync(exe, '#!/bin/sh\n')
+  chmodSync(exe, 0o755)
+  desktop._resetMacStrategy()
+  try {
+    const strategy = await desktop.resolveMacStrategy({ pathEnv: dir })
+    assert.deepEqual(strategy, { kind: 'terminal-notifier', file: exe })
+    const again = await desktop.resolveMacStrategy({ pathEnv: '/var/empty' })
+    assert.deepEqual(again, strategy, '缓存：身份不随每次发送漂移')
+  } finally {
+    desktop._resetMacStrategy()
+  }
+})
+
+test('resolveMacStrategy：没有 terminal-notifier 时回落 osascript，探测永不抛', async () => {
+  desktop._resetMacStrategy()
+  try {
+    assert.deepEqual(await desktop.resolveMacStrategy({ pathEnv: '' }), { kind: 'osascript', file: 'osascript' })
+  } finally {
+    desktop._resetMacStrategy()
+  }
+})
+
+test('macSenderName：错误文案点名用户真正要授权的发送方', () => {
+  assert.equal(desktop.macSenderName({ kind: 'terminal-notifier' }), 'terminal-notifier')
+  assert.equal(desktop.macSenderName({ kind: 'osascript' }), 'Script Editor')
+  assert.equal(desktop.macSenderName(null), 'Script Editor')
+})
+
+test('desktop 声明 deliveryEvidence=unverifiable（退出码 0 不等于送达）', () => {
+  assert.equal(desktop.deliveryEvidence, 'unverifiable')
 })

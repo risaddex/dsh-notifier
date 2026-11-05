@@ -148,6 +148,17 @@ Useful commands:
 
 Unsafe remote-control semantics are not enabled in group chats.
 
+**Command admission (v0.14 / T04):** every command above must clear one unified
+authorization gate before it takes effect. By default (unless the matching
+capability is explicitly enabled under `inbound.control.capabilities`): read-only
+commands (`/status` `/tasks` `/sessions` `/help` `/whoami`) work; `/stop` needs
+`stop`; ordinary text and `!steer` need `converse`; `/bind` `/use` need `assets`;
+`/quiet` `/unquiet` need `quiet`; `/log` needs owner (and is off by default). An
+unrecognized `/xxx` is **explicitly refused** (an "unrecognized command" receipt),
+never delivered to the agent as plain text. Group chats reject control,
+conversation and sensitive command entry points by default (group notifications
+are unaffected).
+
 ## 8. Advanced Console
 
 Use the Native UI for daily work. Use Advanced Console for:
@@ -176,6 +187,10 @@ insert:
 ```
 
 Prefer `${ENV:NAME}` for credentials and never commit secrets.
+
+Add `lang: en` to the same `config` block to get English phone notifications, English
+`notify` tool text and an English Advanced Console (default `zh`). The Native
+**Notify & Control** panel follows the DSH UI language instead.
 
 CLI examples:
 

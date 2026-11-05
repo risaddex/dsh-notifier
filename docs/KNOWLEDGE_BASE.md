@@ -2,7 +2,9 @@
 
 这是人类和 agent 的导航页。每个问题尽量只指向一个权威来源；运行时真相仍是 `src/` 与 `test/`，版本真相是 `package.json`。
 
-> 当前工作线：`v0.13.1` 已完成正式发布（tag、GitHub Release、npm latest）；`dev` 与 `main` 的发布内容已对齐，后续仅保留文档跟进和真实 provider/真机证据缺口。
+> Development follow-up (2026-11-05): the fork supports exactly DSH `0.2.1-rc.5 || 0.2.2-rc.1`, with 2059 unit tests and 20 packed-host checks per runtime passing on Linux. The new host needs Node >=24.9.0. Reinstall a newly named tarball to avoid the old same-version manifest cache; see `docs/compatibility-matrix.md`, `test/host/README.md` and `docs/new-host/evidence/dsh-022-compat.json`. The v0.13.1 release snapshots below are historical, not a claim that npm latest contains this migration.
+>
+> English surface follow-up (same day): channel configuration metadata is bilingual at the source of truth (`desc`/`descEn`, `label`/`labelEn` in `src/adapters/spec-channels.mjs`, `src/field-hints.mjs` (`FIELD_HINTS`), `src/inbound/channel-config.mjs`), consumed by the Native projection (`src/control-surface/channels.mjs`) and by `createAdminApi({ lang })`; the `notify` tool surface lives in `src/strings.mjs#notifyTool` and follows `lang`; `package.json.description` is English. Guarded by `test/channel-metadata-i18n.test.mjs`, the tool i18n tests and the admin-api language test. Earlier English-surface snapshot (2026-11-05): 2059 tests, 2057 pass, 2 environmental failures reproduced on a pristine export — see [HANDOFF.md](../HANDOFF.md). Runtime `warn`/`info` diagnostics, admin `ApiError` copy and maintainer docs remain Chinese by design.
 
 ## 当前基线
 
@@ -12,7 +14,7 @@
 - 生态收录：v0.13.1 已发布；Awesome DSH / dshfind 的公开描述刷新是发布后的外部同步步骤，不影响仓内版本事实。
 - Node.js ESM、Node `>=22`、无生产依赖、无构建步骤；28 个出站渠道，Telegram/Feishu/QQ Bot/WxPusher/WeChat iLink/DingTalk 六个入站控制通道。
 - v0.12 起 DSH Native「通知与控制」是日常主控制面（Sidebar/Main + Plugins 入口）；Standalone Web 管理台只监听 `127.0.0.1`，降级为 Advanced / Recovery；YAML / CLI 是高级、自动化与 headless 入口。出站保存 Hot Apply，不重启。
-- Native 与 Web/admin 的问题结算均复用 Control Core；desktop `ask_user` 没有安全宿主接口，不能声称桌面结算或双端共享。DSH `0.1.7-rc.2` Native 视觉/交互与 `alpha.1` 兼容性冒烟已通过；provider/device 级验证仍按 `docs/memory/risks.md` 单独记录。
+- Native 与 Web/admin 的问题结算均复用 Control Core；desktop `ask_user` 没有安全宿主接口，不能声称桌面结算或双端共享。宿主目标为 DSH `0.2.1-rc.5 || 0.2.2-rc.1`（`engines.dsh`，旧 `0.1.7-*` 不再支持）；provider/device 级验证仍按 `docs/memory/risks.md` 单独记录。
 
 ## 阅读顺序
 

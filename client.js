@@ -986,7 +986,11 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-      .dn-page{box-sizing:border-box;max-width:960px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;color:var(--dsw-alias-label-primary);font-family:inherit}
+      .dn-page{box-sizing:border-box;max-width:960px;margin:0 auto;padding:28px clamp(24px,4vw,48px) 48px;color:var(--dsw-alias-label-primary);font-family:inherit;height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--dsw-alias-scrollbar-bg-l2, rgb(0 0 0 / 18%)) transparent}
+      .dn-page::-webkit-scrollbar{width:8px;height:8px}
+      .dn-page::-webkit-scrollbar-thumb{border-radius:4px;background:var(--dsw-alias-scrollbar-bg-l2, rgb(0 0 0 / 18%))}
+      .dn-page::-webkit-scrollbar-thumb:hover{background:var(--dsw-alias-scrollbar-hover-l2, rgb(0 0 0 / 28%))}
+      .dn-page::-webkit-scrollbar-track{background:transparent}
       .dn-pageHead{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin:0 0 28px}
       .dn-pageTitle{margin:0;font-size:20px;line-height:28px;font-weight:500}
       .dn-pageIntro{margin:4px 0 0;color:var(--dsw-alias-label-secondary);font-size:13px;line-height:20px}

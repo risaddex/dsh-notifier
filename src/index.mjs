@@ -60,7 +60,13 @@ import { registerControlSurfaceRpc } from './control-surface/rpc.mjs'
 import { stringsOf } from './strings.mjs'
 
 export const name = 'dsh-notifier'
-export const inject = ['tools', 'agents', 'connection']
+// 核心静态 inject 仅保留真正必需的服务：tools（notify/ask_user 工具注册）与 agents
+// （任务投影/会话路由读活 Agent）。connection 与 webServer 只在 web profile 存在
+// （dsh-base/dsh-headless 都不提供），若放进静态 inject，headless 下整插件会永久 PENDING
+// 而非降级——通知核心与工具都不会装配（T01 D3 / T02）。二者改由独立子 Fiber
+// （见下方 ctx.inject(['connection','webServer'], …)）拥有：服务缺席时回调不执行，headless
+// 静默降级为无 Native RPC 但仍提供 notify/工具；服务就绪（web）时装配 Native Control Surface。
+export const inject = ['tools', 'agents']
 
 /** 返回已解析配置（供测试与其它插件复用）。 */
 export function apply(ctx, config = {}) {
@@ -188,6 +194,14 @@ export function apply(ctx, config = {}) {
     ? inboundRaw.stateDir.trim()
     : defaultStateDir()
   const store = createStore(`${stateDir}/state.json`)
+  // T03：旧 schema 隔离在启动即告警（可观测），要求用户重新配置/重新配对；
+  // 不静默把旧 state 当空状态后宣称已迁移。原文件保留不删（store 只在首次显式写时取证）。
+  try {
+    const schema = typeof store.migrationStatus === 'function' ? store.migrationStatus() : null
+    if (schema?.legacy === true) {
+      warn(`检测到旧数据 schema（读到 ${schema.bootSchemaVersion === null ? '无版本标记' : `v${schema.bootSchemaVersion}`}，期望 v${schema.expectedVersion}）：其中的绑定/待决/配对/会话选择不作为权威，请在 Native/Recovery 重新配置或重新配对。原文件已保留（可另存 .bak）`)
+    }
+  } catch { /* 诊断失败不阻塞启动 */ }
   // v0.8.7 引导码文件交付（LEAK-2）：码面写本机 0600 文件，stderr 只印路径——
   // 日志聚合（journald/Loki/ELK）不再承载 owner 级凭证。
   const BOOTSTRAP_CODE_FILE = `${stateDir}/bootstrap-paircode.txt`
@@ -403,6 +417,7 @@ export function apply(ctx, config = {}) {
     rateLimitPerMinute: resolved.toolRateLimitPerMinute,
     router,
     channelTypes: () => outboundSource.types(),
+    strings,
   })
   if (disposeTool != null) disposers.push(disposeTool)
   const disposeTestTool = registerNotifyTestTool(ctx, notifier, { rateLimitPerMinute: resolved.toolRateLimitPerMinute, strings })
@@ -816,6 +831,10 @@ export function apply(ctx, config = {}) {
     health: surfaceHealth,
     storageStatus: () => {
       const boot = typeof store.bootStatus === 'function' ? store.bootStatus() : { readFailed: false }
+      // T03：旧 schema 隔离信号（Native/Recovery 据此提示重新配置/重新配对；不静默按空状态当已迁移）。
+      const schema = typeof store.migrationStatus === 'function'
+        ? store.migrationStatus()
+        : { legacy: false, reason: null, action: null }
       const migrated = Array.isArray(configMigration.migrated) ? configMigration.migrated.length : 0
       const status = configMigration.ok !== true
         ? 'failed'
@@ -826,6 +845,7 @@ export function apply(ctx, config = {}) {
             : 'complete'
       return {
         ...boot,
+        schema,
         migration: {
           status,
           migratedCount: migrated,
@@ -837,11 +857,12 @@ export function apply(ctx, config = {}) {
     launchTickets,
     adminLocation: () => adminListenInfo,
   })
-  // v0.12：Native 通道挂在宿主 HTTP server 上（`/dsh-notifier` prefix 路由），与宿主 connection
-  // 插件挂 `/api` 同款，故注册方必须能同时访问 connection（准入）与 webServer（挂路由）。
-  // 真机 0.1.7-rc.2 已复现：宿主 `connection.rpc.handle` 自身不可用（owner ctx 未声明 webServer），
-  // 详见 src/control-surface/rpc.mjs 文件头。webServer 只在 web profile 存在，故走条件注入；
-  // tui/headless 等无 webServer 的 profile 不装配、静默降级为 Standalone。
+  // v0.12/T02：Native 通道挂在宿主 HTTP server 上（`/dsh-notifier` prefix 路由），与宿主
+  // connection 插件挂 `/api` 同款，故注册方必须能同时访问 connection（准入）与 webServer（挂路由）。
+  // 二者只在 web profile 存在（dsh-base/dsh-headless 都不提供），且绝不在核心静态 inject 里
+  // （否则 headless 整插件 PENDING）。这里无条件创建子 Fiber：ctx.inject 的回调只在
+  // connection+webServer 就绪（web）时执行 → 装配 Native Control Surface；headless 下回调不跑，
+  // 静默降级为无 Native RPC（notify/tools/agents 核心不受影响）。
   const mountSurfaceRpc = (rpcCtx) => {
     try {
       const disposeSurfaceRpc = registerControlSurfaceRpc(rpcCtx, surfaceService)
@@ -916,6 +937,7 @@ export function apply(ctx, config = {}) {
         questionsFallbackEnabled: questionsBridge !== null, // 插件自有 ask_user 工具已注册
         webLocal: 'available', // 管理台本机回环（此 API 自身已在本机运行）
         imageInput: conversationRouterActive ? 'available' : 'unknown', // 图片入站随会话路由装配
+        lang: resolved.lang, // 管理台字段说明取 zh/en 槽（与 createAdminUiHtml(resolved.lang) 同源）
       })
       surfaceAdminApi = adminApi
       adminApi.testOutboundChannel = async (type) => {

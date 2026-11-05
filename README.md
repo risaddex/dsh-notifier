@@ -87,11 +87,36 @@ Outbound configuration changes are hot-applied after installation. Inbound trans
 | Manage members, bindings, sessions or recovery | Open the **Advanced Console** from Native |
 | Automate or run headless | Use YAML / CLI from the [guide](docs/guide.en.md) |
 
+## Language
+
+English and Chinese are both first-class, and the switch differs per surface:
+
+| Surface | Follows | How to switch |
+| --- | --- | --- |
+| Native **Notify & Control** panel, channel names, form hints, question cards | the DSH UI language | change DSH's own language |
+| Phone notifications, `notify` / `notify_test` tool text, **Advanced Console** | the plugin's `lang` | set `lang: en` (default `zh`) in the plugin config |
+
+```yaml
+# profile cordis.patch.yml
+- insert:
+    - id: dsh-notifier
+      config:
+        lang: en
+```
+
+`lang` only covers copy the plugin itself authors — text produced by DSH or by
+the agent stays in the session language.
+
 ## Channels
 
 **Outbound (28):** Bark, Bell, Chanify, Desktop, DingTalk, Discord, Feishu, Google Chat, Gotify, iGot, Mattermost, ntfy, OneBot 11, PushDeer, Pushover, PushPlus, Qmsg, QQ official bot, ServerChan, Slack, Microsoft Teams, Telegram, Webhook, WeCom robot, WeCom app, WPS Bot, WxPusher, Xizhi.
 
 **Inbound control (6):** Telegram, Feishu, QQ official bot, WxPusher, WeChat iLink, DingTalk.
+
+> **macOS desktop notifications** are posted by `osascript`, which appears as **Script Editor**
+> (or **terminal-notifier** when that tool is installed — the plugin prefers it). Allow the
+> sender in **System Settings → Notifications**; a successful test only proves the system call
+> was made, which is why the channel shows **Ready** rather than **Healthy**.
 
 <details>
 <summary><strong>Full channel matrix (generated from the channel registry)</strong></summary>
@@ -103,7 +128,7 @@ Outbound configuration changes are hot-applied after installation. Inbound trans
 | `bark` | Bark (iOS) | device key (or self-host URL) | ✅ |
 | `bell` | Terminal bell (local) | — | local |
 | `chanify` | Chanify (iOS) | token (or self-host) | ✅ |
-| `desktop` | Desktop notification (local) | — (Windows needs BurntToast module) | local |
+| `desktop` | Desktop notification (local) | — (macOS: allow the sender in Notifications; Windows needs BurntToast) | local |
 | `dingtalk` | DingTalk custom robot | webhook + secret (HMAC sign) | ✅ |
 | `discord` | Discord webhook | webhook URL | ✅ |
 | `feishu` | Feishu custom bot | webhook (+ sign secret) | ✅ |

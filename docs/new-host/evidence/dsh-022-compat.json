@@ -1,0 +1,100 @@
+{
+  "date": "2026-11-05",
+  "baseCommit": "86eff08266e4e5e856ba0a2d3da33ed3405fc57b",
+  "forkBranch": "risaddex/dsh-notifier:codex/dsh-021-compat",
+  "scope": "Exact DSH 0.2.2-rc.1 compatibility while retaining 0.2.1-rc.5 and preserving existing fork changes.",
+  "hostArtifact": {
+    "package": "@deepseek-ai/dsh",
+    "version": "0.2.2-rc.1",
+    "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh/-/dsh-0.2.2-rc.1.tgz",
+    "integrity": "sha512-ijR9UEVYkG15Q/Q79JzvzLBzQOQfc63VLr9n6flpwHPhr5IKn2UxthnSoto/P9l7qGd7pPvI1Ra6TW7LH3oKpg==",
+    "nodeRequirement": ">=24.9.0"
+  },
+  "environment": {
+    "platform": "linux-x64",
+    "node": "24.22.1",
+    "pnpm": "10.32.1"
+  },
+  "manifest": {
+    "packageVersion": "0.13.1",
+    "enginesDsh": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "sessionPeer": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "versionBump": false
+  },
+  "contractReview": {
+    "publishedConnectionImplementation": "byte-identical between the two selected hosts",
+    "unmetRequirements": "byte-identical",
+    "evaluatePluginCompatibility": "byte-identical",
+    "tools": "module reorganization; public registration and inline execution contract remain present; notify registration verified in both real hosts",
+    "sessionAndQuestions": "published definitions reviewed; no full model turn or approval settlement evidence claimed"
+  },
+  "validation": {
+    "unit": {
+      "command": "DSH_HOME=<disposable-directory> npm test",
+      "total": 2059,
+      "pass": 2059,
+      "fail": 0,
+      "skip": 0
+    },
+    "hostGate": {
+      "command": "DSH_NOTIFIER_HOST_ROOT=<selected-host> node test/host/harness.compat.mjs",
+      "checksPerHost": 5,
+      "selectedHosts": [
+        "0.2.1-rc.5",
+        "0.2.2-rc.1"
+      ],
+      "result": "all pass; previous rc.5-only manifest reproduces reported rejection; older/future unverified hosts rejected"
+    },
+    "packedHostSmoke": {
+      "command": "DSH_NOTIFIER_HOST_ROOT=<selected-host> DSH_NOTIFIER_PLUGIN_ROOT=<unpacked-tarball> node test/host/harness.smoke.mjs",
+      "results": {
+        "0.2.1-rc.5": {
+          "pass": 20,
+          "fail": 0
+        },
+        "0.2.2-rc.1": {
+          "pass": 20,
+          "fail": 0
+        }
+      },
+      "profiles": [
+        "web",
+        "headless"
+      ],
+      "nativeRpc": [
+        "surface.home",
+        "channels.list"
+      ],
+      "unauthenticatedRpcStatus": 401,
+      "browserCookieExchange": true,
+      "notifyToolRegistered": true,
+      "localWebhookDelivery": true
+    },
+    "cliInstall": {
+      "host": "0.2.2-rc.1",
+      "command": "dsh plugin --profile web add <absolute-tarball> --ignore-scripts",
+      "result": "success; installed manifest and composed config verified",
+      "compatibilityExemptions": false
+    },
+    "existingProfileUpgrade": {
+      "oldHost": "0.2.1-rc.5",
+      "newHost": "0.2.2-rc.1",
+      "samePathArchive": "pnpm reported already up to date and kept the old installed engine requirement despite the replaced archive",
+      "distinctFilename": "dsh-notifier-0.13.1-dsh-022-rc1.tgz",
+      "result": "new manifest installed and profile composes without exemption; no store/profile removal"
+    },
+    "guards": [
+      "verify-host-compat",
+      "verify-release",
+      "channel matrix --check",
+      "node --check src/index.mjs",
+      "git diff --check"
+    ]
+  },
+  "limitations": [
+    "No native macOS/Desktop banner or visual walkthrough was exercised.",
+    "No full model turn or real provider/device delivery was exercised.",
+    "Unrelated security findings and provider runtime paths are unchanged.",
+    "No upstream PR, merge, tag or release was requested or created."
+  ]
+}

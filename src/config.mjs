@@ -18,6 +18,7 @@ import * as bell from './adapters/bell.mjs'
 // 阶段 1 新增：spec 引擎吃声明表产出 adapter + token 型代码适配器。
 import { SPEC_CHANNELS } from './adapters/spec-channels.mjs'
 import { makeSpecAdapters, secretFieldsOfTable } from './adapters/_engine.mjs'
+import { FIELD_HINTS } from './field-hints.mjs'
 import { isPublicExposure } from './security/exposure.mjs'
 import * as qqBot from './adapters/qq-bot.mjs'
 import * as wecomApp from './adapters/wecom-app.mjs'
@@ -74,70 +75,9 @@ export function secretFieldsOf(type) {
 }
 
 /**
- * 手写 adapter 的字段表（管理台凭证表单渲染用，v0.3.3）：
- * 形状对齐 spec 引擎的 fields 声明（{ [key]: { required?, secret?, desc } }）。
- * spec 渠道不在此表——由 ADAPTERS[type].spec.fields 机器读取（单一事实源）。
- */
-const FIELD_HINTS = {
-  telegram: {
-    botToken: { required: true, secret: true, desc: 'Telegram Bot Token（@BotFather 获取）' },
-    chatId: { required: true, secret: false, exposure: 'public', desc: '接收者的 chat id（可向 @userinfobot 查询）' },
-  },
-  dingtalk: {
-    webhook: { required: true, secret: true, desc: '钉钉群自定义机器人完整地址' },
-    secret: { required: false, secret: true, desc: '加签密钥（机器人安全设置选「加签」时填）' },
-  },
-  feishu: {
-    webhook: { required: true, secret: true, desc: '飞书群自定义机器人完整地址' },
-    secret: { required: false, secret: true, desc: '加签密钥（机器人安全设置选「签名校验」时填）' },
-  },
-  wxpusher: {
-    appToken: { required: true, secret: true, desc: 'WxPusher 应用 APP_TOKEN（wxpusher.zjiecode.com）' },
-    accountId: { required: false, secret: false, desc: '本地账号标识（多账号/多应用时建议填写；不要填 APP_TOKEN）' },
-    uids: { required: false, secret: true, desc: '接收者 UID 数组，如 ["UID_xxx"]（与 topicIds 至少一项）' },
-    topicIds: { required: false, secret: false, desc: '主题 ID 数组（群发用）' },
-  },
-  pushplus: {
-    token: { required: true, secret: true, desc: 'pushplus token（www.pushplus.plus）' },
-  },
-  serverchan: {
-    sct: { required: true, secret: true, desc: 'Server酱 SENDKEY（sct.ftqq.com；SC3 企业版 sctp 前缀自动走 <数字>.push.ft07.com）' },
-  },
-  bark: {
-    key: { required: true, secret: true, desc: 'Bark 设备 key（App 内复制）' },
-    barkUrl: { required: false, secret: true, desc: '自建 Bark 服务地址（默认官方）' },
-    device: { required: false, secret: false, desc: '设备名（多设备时指定）' },
-  },
-  webhook: {
-    url: { required: true, secret: true, desc: '接收 POST JSON 的 webhook 地址' },
-    headers: { required: false, secret: true, desc: '附加请求头对象，如 {"Authorization": "..."}' },
-  },
-  bell: {
-    count: { required: false, secret: false, desc: '响铃次数 1-5（默认 1）' },
-  },
-  desktop: {
-    sound: { required: false, secret: false, desc: '提示音：auto（默认，仅紧急级）/ always / never' },
-  },
-  'qq-bot': {
-    appId: { required: true, secret: true, desc: 'QQ 开放平台开发者 ID（q.qq.com → 机器人开发设置）' },
-    appSecret: { required: true, secret: true, desc: '同页面 AppSecret' },
-    targetType: { required: false, secret: false, desc: '"user"（单聊，默认）或 "group"（群聊）' },
-    userId: { required: false, secret: false, desc: '单聊目标用户 openid（targetType=user 时）' },
-    groupId: { required: false, secret: false, desc: '群 open id（targetType=group 时）' },
-    markdown: { required: false, secret: false, desc: '默认 markdown（msg_type=2）；填 false 回退纯文本（msg_type=0）' },
-  },
-  'wecom-app': {
-    corpid: { required: true, secret: true, desc: '企业 ID（企业微信管理后台「我的企业」）' },
-    secret: { required: true, secret: true, desc: '应用 Secret（管理后台「应用管理」）' },
-    agentId: { required: true, secret: false, desc: '应用 AgentId（数字）' },
-    toUser: { required: false, secret: false, desc: '接收成员账号，默认 "@all"' },
-  },
-}
-
-/**
  * 取某渠道的凭证字段表（管理台表单渲染用，v0.3.3）：spec 渠道读声明表（含 desc/required/
- * secret，单一事实源），手写渠道读 FIELD_HINTS。返回 { [key]: { required?, secret?, desc } }
- * 的浅拷贝；未知渠道返回 {}（防御，绝不抛）。
+ * secret，单一事实源），手写渠道读 FIELD_HINTS（见 field-hints.mjs）。返回
+ * { [key]: { required?, secret?, desc, descEn? } } 的浅拷贝；未知渠道返回 {}（防御，绝不抛）。
  */
 export function channelFieldsOf(type) {
   const spec = ADAPTERS[type]?.spec

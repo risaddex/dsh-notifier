@@ -37,6 +37,14 @@ export async function runChannelTest({ type, rawConfig, message, strings = null 
       content: typeof message === 'string' && message !== '' ? message : h.testMessage,
       level: 'active',
     })
+    // 无送达证据的本地渠道（桌面通知）：成功只代表系统接口被调用，不能替用户担保屏幕上出现。
+    if (ADAPTERS[channel].deliveryEvidence === 'unverifiable') {
+      return {
+        ok: true,
+        channel,
+        detail: '已交给系统通知中心——请确认横幅是否真的出现；没出现请到「系统设置 → 通知」允许发送方（macOS 默认是 Script Editor，装了 terminal-notifier 则是它）',
+      }
+    }
     return { ok: true, channel, detail: '已发送测试消息，请到客户端确认收到' }
   } catch (error) {
     // G-53 分层：admin UI / 工具反馈只见公开文案；完整内部细节（响应体/网络原文）

@@ -64,6 +64,23 @@ test('R4：healthState——accepted 已属操作健康，但 UI 标签仍与 co
   assert.equal(snap.delivered, 0, 'healthy 状态不等于有送达证据')
 })
 
+test('R4：healthState——unverifiable 渠道（本地桌面通知）accepted 不给绿灯', () => {
+  const health = createSurfaceHealth({ window: 20 })
+  health.recordSend({ accepted: ['desktop'], confirmed: [] })
+  const snap = health.snapshot('desktop')
+  // 命令退出 0 只说明系统接口被调用：屏幕是否出现插件看不到，因此只能是「可用」。
+  assert.equal(healthState({ configured: true, active: true, health: snap, deliveryEvidence: 'unverifiable' }), 'ready')
+  // 同一份证据在可验证渠道上仍是 healthy（默认行为不变）。
+  assert.equal(healthState({ configured: true, active: true, health: snap }), 'healthy')
+  // 真有 confirmed 回执时才允许绿灯。
+  health.recordSend({ accepted: ['desktop'], confirmed: ['desktop'] })
+  const confirmedSnap = health.snapshot('desktop')
+  assert.equal(healthState({ configured: true, active: true, health: confirmedSnap, deliveryEvidence: 'unverifiable' }), 'healthy')
+  // 失败仍然优先降级。
+  health.recordSend({ failed: [{ channel: 'desktop', error: 'timeout' }] })
+  assert.equal(healthState({ configured: true, active: true, health: health.snapshot('desktop'), deliveryEvidence: 'unverifiable' }), 'degraded')
+})
+
 // ---------------------------------------------------------------- activity 分层
 
 test('R4：activity——accepted → 已发送到提供方；confirmed → 已确认送达', () => {

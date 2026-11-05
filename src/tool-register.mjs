@@ -65,23 +65,32 @@ const notifySchema = {
 
 const oneText = (text) => [{ type: 'text', text }]
 
-function renderNotify(value) {
+/** 渠道类型列表快照（'/' 连接：渠道类型是配置标识，两种语言都不翻译、不改连接符）。 */
+const CHANNEL_TYPE_LIST = CHANNEL_TYPES.join('/')
+
+/** 取工具面文案：缺省 / 未注入 / 局部表一律回落 zh（与 stringsOf 的兜底同法）。 */
+function notifyToolStrings(strings) {
+  return strings?.notifyTool ?? stringsOf().notifyTool
+}
+
+/** 渲染 notify / notify_test 结果：文案全部来自 stringsOf(lang).notifyTool。 */
+function renderNotify(value, t) {
+  const failureItems = (failures) => failures.map((item) => t.failedItem(item.channel, item.error))
   if (value.rateLimited === true) {
-    return oneText(`已限流：notify 工具每分钟调用已达上限（防提示注入刷渠道，上限 ${value.rateLimit ?? ''} 次/分钟）。请稍后再试，或让用户调高 toolRateLimitPerMinute 配置。`)
+    return oneText(t.rateLimited(value.rateLimit))
   }
   if (value.skipped === true) {
-    return oneText(`未发送：渠道 "${value.channel ?? ''}" 未配置。已配置渠道类型：${CHANNEL_TYPES.join('/')}。可在 profile 的 cordis.patch.yml 中为 dsh-notifier 添加对应 channels 后重启。`)
+    return oneText(t.skipped(value.channel, CHANNEL_TYPE_LIST))
   }
   if (value.delivered !== undefined && value.delivered.length > 0) {
-    const failText = value.failed.length > 0
-      ? `；失败渠道：${value.failed.map((item) => `${item.channel}（${item.error}）`).join('、')}`
-      : ''
-    return oneText(`通知已发送${value.channel ? `到渠道 "${value.channel}"` : `（${value.delivered.join('、')}）`}${failText}`)
+    const failText = value.failed.length > 0 ? t.failSuffix(failureItems(value.failed)) : ''
+    const sent = value.channel ? t.sentToChannel(value.channel) : t.sentToBroadcast(value.delivered)
+    return oneText(`${sent}${failText}`)
   }
   if (value.failed !== undefined && value.failed.length > 0) {
-    return oneText(`通知发送失败：${value.failed.map((item) => `${item.channel}（${item.error}）`).join('、')}`)
+    return oneText(t.sendFailed(failureItems(value.failed)))
   }
-  return oneText('通知未发送')
+  return oneText(t.notSent)
 }
 
 /**
@@ -95,6 +104,8 @@ function renderNotify(value) {
  *   缺省 / 取不到 agentId / 解析异常 = 全局池广播（v0.3.1 行为不变）。
  * @param {() => string[]} [options.channelTypes] - 全局已启用渠道类型快照函数
  *   （resolveOutbound 的兜底池与过滤白名单）；缺省回落 notifier.channels。
+ * @param {object} [options.strings] - stringsOf(resolveConfig().lang) 的结果；
+ *   缺省 / 未带 notifyTool 节时回落 stringsOf()（zh，与既有中文输出逐字节一致）。
  */
 export function registerNotifyTool(ctx, notifier, options = {}) {
   if (ctx?.tools?.register === undefined) {
@@ -104,23 +115,24 @@ export function registerNotifyTool(ctx, notifier, options = {}) {
   const limiter = createRateLimiter({ limitPerMinute: options.rateLimitPerMinute ?? 10 })
   const router = options.router ?? null
   const globalChannelTypes = typeof options.channelTypes === 'function' ? options.channelTypes : null
+  const t = notifyToolStrings(options.strings)
 
   return ctx.tools.register({
     name: 'notify',
-    description: `发送一条通知到用户配置的推送渠道（${CHANNEL_TYPES.join('/')}）。适合任务完成、长时间运行结束、需要用户关注或决策时主动提醒用户。channel 省略时广播到所有已配置渠道；message 为正文，title 为标题。未配置的渠道会静默跳过并在返回里说明。`,
+    description: t.description(CHANNEL_TYPE_LIST),
     parameters: compileParameters({
-      message: { type: 'string', required: true, description: '通知正文（markdown / 纯文本均可）' },
-      title: { type: 'string', description: '通知标题（默认空，各渠道自行兜底）' },
-      channel: { type: 'string', description: `目标渠道类型：${CHANNEL_TYPES.join('/')}；省略则广播到所有已配置渠道` },
+      message: { type: 'string', required: true, description: t.messageParam },
+      title: { type: 'string', description: t.titleParam },
+      channel: { type: 'string', description: t.channelParam(CHANNEL_TYPE_LIST) },
     }),
     output: {
       schema: notifySchema,
-      render: (_args, value) => renderNotify(value),
+      render: (_args, value) => renderNotify(value, t),
     },
     async execute(rawArgs, execContext) {
       const args = rawArgs ?? {}
       if (typeof args.message !== 'string' || args.message.trim() === '') {
-        throw new Error('message 不能为空')
+        throw new Error(t.messageRequired)
       }
       if (!limiter.allow()) {
         return { ok: false, rateLimited: true, rateLimit: limiter.limit, delivered: [], failed: [] }
@@ -183,21 +195,23 @@ export function registerNotifyTool(ctx, notifier, options = {}) {
  * @param notifier - createNotifier 返回的 { notify, notifyAll, channelCount }。
  * @param {object} [options]
  * @param {number} [options.rateLimitPerMinute=10] - 每分钟调用上限（0 = 不限）。
+ * @param {object} [options.strings] - stringsOf(resolveConfig().lang) 的结果；缺省回落 zh。
  */
 export function registerNotifyTestTool(ctx, notifier, options = {}) {
   if (ctx?.tools?.register === undefined) {
     return null
   }
   const limiter = createRateLimiter({ limitPerMinute: options.rateLimitPerMinute ?? 10 })
+  const t = notifyToolStrings(options.strings)
   return ctx.tools.register({
     name: 'notify_test',
-    description: '向用户配置的推送渠道发送一条测试通知，验证渠道是否正常（健康自检）。仅在用户要求检查通知配置时调用；省略 channel 时广播到所有已配置渠道。',
+    description: t.testDescription,
     parameters: compileParameters({
-      channel: { type: 'string', description: `目标渠道类型：${CHANNEL_TYPES.join('/')}；省略则广播到所有已配置渠道` },
+      channel: { type: 'string', description: t.channelParam(CHANNEL_TYPE_LIST) },
     }),
     output: {
       schema: notifySchema,
-      render: (_args, value) => renderNotify(value),
+      render: (_args, value) => renderNotify(value, t),
     },
     async execute(rawArgs) {
       const args = rawArgs ?? {}

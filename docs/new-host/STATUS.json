@@ -1,0 +1,62 @@
+{
+  "phase": "implementation-in-progress",
+  "updated_on": "2026-10-31",
+  "target_host": "0.2.1-rc.5",
+  "implementation_started": true,
+  "execution_authorization": {
+    "local_tests": true,
+    "real_dsh_disposable_profile": true,
+    "real_provider_accounts": false,
+    "dev_rebuild_and_stage_push": true,
+    "main_merge_or_publish": false
+  },
+  "tasks": {
+    "T00": "verified",
+    "T01": "implemented",
+    "T02": "verified",
+    "T03": "verified",
+    "T04": "verified",
+    "T05": "planned",
+    "T06": "planned",
+    "T07": "planned",
+    "T08": "planned",
+    "T09": "planned",
+    "T10": "planned",
+    "T11": "planned",
+    "T12": "planned",
+    "T13": "planned",
+    "T14": "planned",
+    "T15": "planned",
+    "T16": "planned",
+    "T17": "planned",
+    "T18": "planned",
+    "T19": "planned",
+    "T20": "planned",
+    "T21": "planned",
+    "T22": "planned",
+    "T23": "planned",
+    "T24": "planned",
+    "T25": "planned",
+    "T26": "planned",
+    "T27": "planned",
+    "T28": "planned",
+    "T29": "planned"
+  },
+  "evidence": {
+    "T00": "docs/new-host/evidence/T00.json",
+    "T01": "docs/new-host/evidence/T01.json",
+    "T02": "docs/new-host/evidence/T02.json",
+    "T03": "docs/new-host/evidence/T03.json",
+    "T04": "docs/new-host/evidence/T04.json"
+  },
+  "note": "T00-T04 verified: dev rebuilt from main; rc.5 install gate + core/web inject split; versioned store namespace + legacy isolation; unified command admission (converse unbypassable). Host harness (test/host) landed.",
+  "delivery_policy": {
+    "reset_dev_from_current_main": true,
+    "old_dev_backup_required": true,
+    "initial_reset_exact_lease_only": true,
+    "stage_review_and_neat_required": true,
+    "stage_push_dev": true,
+    "main_merge_or_publish": false,
+    "remote_actions_performed_by_preparation_agent": false
+  }
+}

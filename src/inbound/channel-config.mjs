@@ -10,23 +10,52 @@ import { inboundApplyMode, isHotApplied } from '../control-surface/apply-mode.mj
 
 /** 入站通道的凭证字段表（与 Admin 既有表一致；wechat 为扫码产物，不手填）。 */
 export const INBOUND_FIELDS = Object.freeze({
-  telegram: { botToken: { required: true, desc: 'Telegram Bot Token（与出站同域）' } },
+  telegram: {
+    botToken: {
+      required: true, desc: 'Telegram Bot Token（与出站同域）',
+      descEn: 'Telegram Bot Token (same bot as the outbound channel)',
+    },
+  },
   feishu: {
-    appId: { required: true, desc: '飞书自建应用 App ID（扫码授权自动写入）' },
-    appSecret: { required: true, desc: '飞书自建应用 App Secret（扫码授权自动写入）' },
+    appId: {
+      required: true, desc: '飞书自建应用 App ID（扫码授权自动写入）',
+      descEn: 'Feishu custom app App ID (written automatically by QR-code authorization)',
+    },
+    appSecret: {
+      required: true, desc: '飞书自建应用 App Secret（扫码授权自动写入）',
+      descEn: 'Feishu custom app App Secret (written automatically by QR-code authorization)',
+    },
   },
   qq: {
-    appId: { required: true, desc: 'QQ 机器人 AppID（扫码授权自动写入）' },
-    appSecret: { required: true, desc: 'QQ 机器人 AppSecret（扫码授权自动写入）' },
+    appId: {
+      required: true, desc: 'QQ 机器人 AppID（扫码授权自动写入）',
+      descEn: 'QQ bot AppID (written automatically by QR-code authorization)',
+    },
+    appSecret: {
+      required: true, desc: 'QQ 机器人 AppSecret（扫码授权自动写入）',
+      descEn: 'QQ bot AppSecret (written automatically by QR-code authorization)',
+    },
   },
   wxpusher: {
-    appToken: { required: true, desc: 'WxPusher 应用 APP_TOKEN（回调鉴权即凭证）' },
-    accountId: { required: false, secret: false, exposure: 'public', desc: '本地账号标识（多账号/多应用时建议填写；不要填 APP_TOKEN）' },
+    appToken: {
+      required: true, desc: 'WxPusher 应用 APP_TOKEN（回调鉴权即凭证）',
+      descEn: 'WxPusher app APP_TOKEN (the callback credential itself)',
+    },
+    accountId: {
+      required: false, secret: false, exposure: 'public', desc: '本地账号标识（多账号/多应用时建议填写；不要填 APP_TOKEN）',
+      descEn: 'Local account label (recommended when using multiple accounts or apps; do not put the APP_TOKEN here)',
+    },
   },
   wechat: {},
   dingtalk: {
-    appKey: { required: true, desc: '钉钉企业内部应用 AppKey（扫码授权自动写入）' },
-    appSecret: { required: true, desc: '钉钉企业内部应用 AppSecret（扫码授权自动写入）' },
+    appKey: {
+      required: true, desc: '钉钉企业内部应用 AppKey（扫码授权自动写入）',
+      descEn: 'DingTalk internal app AppKey (written automatically by QR-code authorization)',
+    },
+    appSecret: {
+      required: true, desc: '钉钉企业内部应用 AppSecret（扫码授权自动写入）',
+      descEn: 'DingTalk internal app AppSecret (written automatically by QR-code authorization)',
+    },
   },
 })
 

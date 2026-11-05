@@ -1,6 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { registerNotifyTool, registerNotifyTestTool, compileParameters, createRateLimiter } from '../src/tool-register.mjs'
+import { stringsOf } from '../src/strings.mjs'
+
+/** CJK 文字与全角标点：英文工具面里出现即视为未翻译。 */
+const CJK = /[\u3000-\u303f\u4e00-\u9fff\uff01-\uff60]/
 
 function fakeTools() {
   const defs = []
@@ -210,5 +214,50 @@ test('notify_test 工具 execute: rateLimitPerMinute 0 = 不限流', async () =>
   for (let index = 0; index < 5; index += 1) {
     const result = await defs[0].execute({})
     assert.equal(result.ok, true)
+  }
+})
+
+test('工具面 i18n：lang=en 时 notify / notify_test 元数据与结果渲染全为英文', () => {
+  const en = stringsOf('en')
+  const { ctx: tools, defs } = fakeTools()
+  registerNotifyTool(tools, fakeNotifier(), { strings: en })
+  registerNotifyTestTool(tools, fakeNotifier(), { strings: en })
+  assert.equal(defs.length, 2)
+  for (const def of defs) {
+    assert.equal(CJK.test(def.description), false, `${def.name} description 必须是英文`)
+    for (const [key, prop] of Object.entries(def.parameters.properties)) {
+      assert.equal(CJK.test(prop.description), false, `${def.name}.${key} 参数说明必须是英文`)
+    }
+  }
+  // 结果渲染的每个分支都必须走英文字面（列表连接符 ', '、ASCII 括号与分号）。
+  const branches = [
+    { rateLimited: true, rateLimit: 10, delivered: [], failed: [] },
+    { skipped: true, channel: 'bark', delivered: [], failed: [] },
+    { ok: false, channel: 'bark', delivered: ['bark'], failed: [{ channel: 'qq', error: 'timeout' }] },
+    { ok: false, delivered: [], failed: [{ channel: 'qq', error: 'HTTP 500' }, { channel: 'bark', error: 'timeout' }] },
+    { ok: true, delivered: ['bark', 'webhook'], failed: [] },
+  ]
+  for (const value of branches) {
+    for (const def of defs) {
+      const text = def.output.render({}, value)[0].text
+      assert.equal(CJK.test(text), false, `结果渲染必须是英文：${text}`)
+    }
+  }
+  const partial = defs[0].output.render({}, branches[2])[0].text
+  assert.equal(partial, 'Notification sent to channel "bark"; failed channels: qq (timeout)')
+})
+
+test('工具面 i18n：缺省 / 未带 notifyTool 的 strings 一律回落 zh，且与既有中文输出同文', async () => {
+  const partialValue = { ok: false, channel: 'bark', delivered: ['bark'], failed: [{ channel: 'qq', error: 'timeout' }] }
+  for (const strings of [undefined, {}, { approval: {} }, { notifyTool: undefined }]) {
+    const { ctx: tools, defs } = fakeTools()
+    registerNotifyTool(tools, fakeNotifier(), { strings })
+    assert.match(defs[0].description, /发送一条通知到用户配置的推送渠道/, '缺省 strings 必须回落 zh 工具说明')
+    assert.equal(
+      defs[0].output.render({}, partialValue)[0].text,
+      '通知已发送到渠道 "bark"；失败渠道：qq（timeout）',
+      'zh 结果渲染必须保持既有中文标点与连接符',
+    )
+    await assert.rejects(() => defs[0].execute({ message: '  ' }), /message 不能为空/, 'zh 校验错误保持既有文案')
   }
 })

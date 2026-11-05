@@ -2,6 +2,145 @@
 
 ## [Unreleased]
 
+### DSH 0.2.2-rc.1 compatibility
+
+- Add `0.2.2-rc.1` as an exact supported host in `engines.dsh`, the optional
+  session peer and the compatibility matrix; keep `0.2.1-rc.5` supported.
+- Run published-host gate checks and packed web/headless tests against both
+  releases, including authentication, Native RPC and notify tool registration.
+  Unverified alpha/future release candidates remain rejected; no exemption is used.
+- The new host requires Node >=24.9.0. The plugin's previous desktop and English
+  surface changes are preserved; its package version remains an unreleased 0.13.1.
+
+### Desktop notifications on macOS: honest health and a real sender identity
+
+- **The green light was lying.** `osascript` exits 0 whether or not macOS shows the
+  banner, and it posts under the **Script Editor** identity — the notification list
+  never shows `dsh-notifier`, so there was nothing to authorize. The `desktop`
+  adapter now declares `deliveryEvidence: 'unverifiable'`; the control surface maps
+  that to `ready` (可用/Ready) instead of `healthy` unless there is an explicit
+  confirmed receipt, and the view carries `unverifiable: true`. Health no longer
+  vouches for delivery it cannot observe.
+- **Prefer `terminal-notifier` when installed.** Its own app bundle gives a real
+  identity the user can allow in System Settings → Notifications. Detection is a
+  read-only `PATH` scan (`findExecutableOnPath`, no `which` spawn, no shell); when it
+  is absent the historical `osascript` path is unchanged.
+- **Copy names the sender to authorize.** A macOS failure and the channel self-check
+  success both say which app must be allowed (`Script Editor`, or `terminal-notifier`
+  when used) instead of claiming "sent, check the client".
+- Docs: README (both languages), `docs/TROUBLESHOOTING(.en).md`, the generated
+  channel matrix row and `docs/memory/risks.md` (banner display is still not
+  verified in-repo — it needs a human at the machine).
+- Rejected approach, recorded so nobody rebuilds it: an `osacompile` applet pretending
+  to be a `dsh-notifier` app. Direct applet execution does not receive `on run argv`
+  (empty argv → `-1728` and a blocking dialog), and Apple-Event argument passing would
+  require a second Automation TCC grant.
+
+### English surface for channel metadata, the notify tool and the native panel
+
+- **Channel configuration metadata is bilingual at the source of truth.** Every
+  Chinese `desc` / `label` in the declaration tables now carries an English
+  sibling (`descEn` / `labelEn`) in `src/adapters/spec-channels.mjs`,
+  `src/field-hints.mjs` (`FIELD_HINTS`, split out of `src/config.mjs`) and
+  `src/inbound/channel-config.mjs`. Two
+  consumers pick the slot: the control-surface projection
+  (`src/control-surface/channels.mjs`) fills `description: { en, zh }` for the
+  Native panel, and `createAdminApi` (`lang` option) hands the Advanced Console a
+  field table whose `desc` is already localized. Both keep a Chinese fallback for
+  fields that have no translation yet, so the payload shapes and older tables
+  keep working. This is the text an English UI renders under each form input —
+  previously the `en` slot held the Chinese string (e.g. the `bell` ring-count
+  hint "响铃次数 1-5（默认 1）").
+- **The `notify` tool follows the existing `lang` switch.** Tool description,
+  parameter descriptions and rendered tool results moved from hardcoded Chinese
+  literals into a new `notifyTool` section of `src/strings.mjs`, resolved through
+  `stringsOf(lang)`; `src/index.mjs` passes the already-computed `strings` into
+  `registerNotifyTool`. `lang: 'zh'` output is byte-identical, `lang: 'en'`
+  yields English metadata, and a caller without `strings` keeps the zh default.
+- **Native panel scrolls its own content.** The page root had no scroll
+  container, so a long channel list (`/channels`) overflowed the panel with an
+  invisible, unreachable tail. `.dn-page` now owns a bounded,
+  overscroll-contained scroll area with theme-token scrollbar styling, and keeps
+  auto-height behaviour when the host does not constrain the panel.
+- **English package metadata.** `package.json.description` (the DSH plugin card
+  and npm summary, which were Chinese-only) is now English and states the
+  English/Chinese UI.
+- **Guard tests** (`test/channel-metadata-i18n.test.mjs`): reject any channel
+  field, channel label or channel description whose Chinese text has no
+  CJK-free English sibling; assert the projection fills both slots distinctly;
+  keep the zh fallback for untranslated fields; forbid a Chinese package
+  description.
+
+### DSH 0.2.1 compatibility verification (#51)
+
+- Verify the authoritative own `engines.dsh` requirement alongside the optional
+  session peer, compatibility matrix and Workshop metadata. Regression tests
+  reject a missing, inherited, stale or widened host requirement.
+- Make the disposable rc.5 host harness portable with configurable host/scratch
+  roots and an unpacked-package input. Verify the published installation gate,
+  browser-authenticated Native RPC and headless local-webhook delivery.
+- Document successful CLI tarball installation on DSH `0.2.1-rc.5` without an
+  exact-version exemption. This follows the existing dev migration; it does not
+  declare rc.2/future-host support or publish a replacement for npm `0.13.1`.
+
+### 命令准入与来源统一（T04）
+
+- **单一准入路径**：每一条入站动作——slash 命令、未知 slash、纯媒体消息、按钮回调、编号
+  回复、任务选择编号回复——都必须先经过**同一个**授权决定（`control.admit` /
+  Control Core `canAcceptCommand`）才可能产生副作用。命令准入表
+  （`session-arbiter.mjs` 的 `COMMAND_POLICY`）逐行对应 CONTRACTS §命令政策最小表：
+  help/whoami 最小；status/tasks/sessions 只读；ordinary/steer 需 converse；stop 需 stop
+  能力；quiet/unquiet 需 quiet 能力；bind/use 需 assets 能力；log 需 owner。未登记命令
+  一律 `unknown_command` 拒绝。
+- **`converse=false` 不可绕过**：未知 slash 现在**显式拒绝**（回执「未识别的命令」），
+  不再回显后当作普通文本透传给 agent；已知但未被最低表允许的命令同样拒绝；普通文本、
+  `!`steer、纯媒体消息、按钮/编号回复全部经同一闸（审批/问题走 `approve` 能力，符合
+  最小表——审批不是对话动作）。
+- **敏感群入口默认拒绝**：QQ 群与通用群聊（`isGroupChat && !groupChatControl`）的
+  控制/对话/敏感命令入口一律 fail-closed（群出站通知不受影响，它们不经过本入口）。
+- **新增两项能力**（默认关）：`capabilities.assets`（bind/use 资源访问）、
+  `capabilities.quiet`（quiet/unquiet 出站静默管理范围）；在 `inbound.control.capabilities`
+  显式开启。默认未开启 → binding/选择/静默类命令默认拒绝（保守收紧，与「converse 默认关」
+  一致）。
+- **回执**：被拒命令按原因回执（群聊拒绝 / 来源不可确认 / 仅 owner / 对话关闭 /
+  远程控制被拒绝），绝无回执黑洞，也不回显命令原文之外的来源信息。
+- 测试：`test/admission-matrix.test.mjs`（真实 bus+conversation+control，覆盖 converse=false
+  全形状拒绝、未知 slash 拒绝、群入口拒绝、按钮/编号/选择编号回复、四种正控）。
+
+### rc.5 宿主对齐（T02：安装门禁与 profile 能力拆分）
+
+- **manifest 安装门禁**：新增 `engines.dsh: "0.2.1-rc.5"`（rc.5 预检在插件自报
+  `engines.dsh` 时只认它、忽略 `@deepseek-ai/dsh*` peer），`peerDependencies["@deepseek-ai/dsh-session"]`
+  更新为 `0.2.1-rc.5`，移除旧 `0.1.7-*` peer；`@deepseek-ai/cordis` peer 对齐到 rc.5 随附的
+  `~4.0.5`；`dshWorkshop.compatibility.dshVersions` 更新为 `["0.2.1-rc.5"]`。插件在 rc.5 上
+  **无需版本豁免**即可安装激活。
+- **核心 inject 与 Web 子 Fiber 拆分**：静态 `inject` 收窄为真正必需的 `['tools','agents']`；
+  `connection`/`webServer`（仅 web profile 存在）移入无条件的 `ctx.inject(['connection','webServer'], …)`
+  子 Fiber。headless 下插件不再永久 PENDING：notify 工具与 `ctx.notifier` 照常工作，Native RPC
+  静默降级；缺必需核心服务（如 `tools`）时启动明确失败（不静默）。
+- **compat 脚本与矩阵**：`scripts/verify-host-compat.mjs`、`docs/compatibility-matrix.md`、
+  `dshWorkshop.dshVersions` 三处一致更新到 `0.2.1-rc.5`；`test/host-compat-matrix.test.mjs`
+  同步。
+- 文档：`docs/upgrade-guide.md` / `.en.md`、`docs/OPERATIONS.md`、`docs/KNOWLEDGE_BASE.md`
+  移除 `0.1.7-*` 支持声明。
+
+### 新版数据 namespace 与旧状态隔离（T03）
+
+- **schema/namespace 版本**：`state.json` 顶层新增保留键 `__schema = { version, namespace }`
+  （当前 v1 / `dsh-notifier`）。每次落盘都带标记；新建即 v1。
+- **旧状态不作权威**：启动读到**无版本标记或版本不符**的文件（旧宿主期写入）→ 标记
+  legacy-unknown：其中的身份绑定/待确认/配对码/会话选择/凭据/游标一律**不执行、不授权**
+  （相关前缀读侧 fail-closed），并对外给出 `reconfigure-or-repair` 信号（Native/Recovery 显示
+  attention + 明确提示；启动 warn 双写）。
+- **原文件不删除**：读路径绝不改写/删除原文件；首次显式写会先取证 `.bak`
+  （`state.json.pre-v0.14-legacy.*`）再建立新 namespace（旧键不被并入）。
+- **事务原子性保持**：写锁/fresh-read merge 不变；版本门拒绝或事务失败时**不发布**新内存态、
+  不动盘上文件。
+- `store` 新增 `schemaVersion()` / `migrationStatus()`；`storageStatus()`（Native/Recovery）带上
+  `schema` 字段。
+- 测试：`test/store-schema-version.test.mjs`（未知版本不作权威 / 原文件不删 / namespace 隔离 /
+  事务原子性）。
+
 ## [0.13.1] - 2026-09-26（v0.13 follow-up release）
 
 本次补丁发行收口 v0.13 后续验证与公开交付边界：管理台补齐中英文资源表与安全内联序列化，公开投递能力改为证据边界表述，npm 白名单覆盖 README 文档/图片并加入包内容回归；高风险专项复核同步完成。

@@ -382,6 +382,26 @@ const ZH = {
     title: 'dsh-notifier 自检',
     testMessage: 'dsh-notifier 渠道自检：这是一条测试消息，收到即说明该渠道配置正确。',
   },
+
+  // notify / notify_test 工具面（tool-register.mjs）：工具元数据与结果渲染。
+  // 渠道类型列表的 '/' 连接符归调用侧（CHANNEL_TYPES.join('/')），两种语言一致；
+  // 表里只放人读文案（列表连接符、括号与分号按语言区分）。
+  notifyTool: {
+    description: (channelTypes) => `发送一条通知到用户配置的推送渠道（${channelTypes}）。适合任务完成、长时间运行结束、需要用户关注或决策时主动提醒用户。channel 省略时广播到所有已配置渠道；message 为正文，title 为标题。未配置的渠道会静默跳过并在返回里说明。`,
+    testDescription: '向用户配置的推送渠道发送一条测试通知，验证渠道是否正常（健康自检）。仅在用户要求检查通知配置时调用；省略 channel 时广播到所有已配置渠道。',
+    messageParam: '通知正文（markdown / 纯文本均可）',
+    titleParam: '通知标题（默认空，各渠道自行兜底）',
+    channelParam: (channelTypes) => `目标渠道类型：${channelTypes}；省略则广播到所有已配置渠道`,
+    messageRequired: 'message 不能为空',
+    rateLimited: (limit) => `已限流：notify 工具每分钟调用已达上限（防提示注入刷渠道，上限 ${limit ?? ''} 次/分钟）。请稍后再试，或让用户调高 toolRateLimitPerMinute 配置。`,
+    skipped: (channel, channelTypes) => `未发送：渠道 "${channel ?? ''}" 未配置。已配置渠道类型：${channelTypes}。可在 profile 的 cordis.patch.yml 中为 dsh-notifier 添加对应 channels 后重启。`,
+    sentToChannel: (channel) => `通知已发送到渠道 "${channel}"`,
+    sentToBroadcast: (delivered) => `通知已发送（${delivered.join('、')}）`,
+    failSuffix: (failures) => `；失败渠道：${failures.join('、')}`,
+    failedItem: (channel, error) => `${channel}（${error}）`,
+    sendFailed: (failures) => `通知发送失败：${failures.join('、')}`,
+    notSent: '通知未发送',
+  },
 }
 
 /** en：与 zh 同形状。 */
@@ -762,6 +782,26 @@ Session commands: see /help (answered by the session router).`,
   health: {
     title: 'dsh-notifier self-check',
     testMessage: 'dsh-notifier channel self-check: if you receive this, the channel is configured correctly.',
+  },
+
+  // notify / notify_test tool surface (tool-register.mjs): tool metadata and result rendering.
+  // The channel-type '/' separator lives on the caller side (CHANNEL_TYPES.join('/')) and is
+  // identical in both languages; only human-facing joiners, parentheses and semicolons vary.
+  notifyTool: {
+    description: (channelTypes) => `Send a notification to the user's configured push channels (${channelTypes}). Use it to alert the user proactively when a task completes, a long run finishes, or the user needs attention or a decision. Omit channel to broadcast to every configured channel; message is the body, title is the heading. Channels that are not configured are skipped silently and reported in the result.`,
+    testDescription: 'Send a test notification to the configured push channels to verify they work (health check). Use it only when the user asks to check the notification setup; omit channel to broadcast to every configured channel.',
+    messageParam: 'Notification body (Markdown or plain text)',
+    titleParam: 'Notification title (empty by default; each channel applies its own fallback)',
+    channelParam: (channelTypes) => `Target channel type: ${channelTypes}; omit to broadcast to every configured channel`,
+    messageRequired: 'message must not be empty',
+    rateLimited: (limit) => `Rate limited: the notify tool already hit its per-minute call cap (anti prompt-injection channel flooding; limit ${limit ?? ''} calls/minute). Retry later, or ask the user to raise the toolRateLimitPerMinute setting.`,
+    skipped: (channel, channelTypes) => `Not sent: channel "${channel ?? ''}" is not configured. Configured channel types: ${channelTypes}. Add the matching channels for dsh-notifier in the profile's cordis.patch.yml and restart.`,
+    sentToChannel: (channel) => `Notification sent to channel "${channel}"`,
+    sentToBroadcast: (delivered) => `Notification sent (${delivered.join(', ')})`,
+    failSuffix: (failures) => `; failed channels: ${failures.join(', ')}`,
+    failedItem: (channel, error) => `${channel} (${error})`,
+    sendFailed: (failures) => `Notification failed: ${failures.join(', ')}`,
+    notSent: 'Notification not sent',
   },
 }
 

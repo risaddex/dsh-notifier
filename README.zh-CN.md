@@ -84,11 +84,35 @@ dsh plugin add dsh-notifier@latest --profile <profile名>
 | 想管理成员、绑定、Session、Recovery | 从 Native 打开「高级管理台」 |
 | Headless / 自动化部署 | 看 [完整指南](docs/guide.md) 的 YAML / CLI 部分 |
 
+## 语言
+
+中文和英文都是完整支持，但切换位置按界面区分：
+
+| 界面 | 跟随 | 怎么切 |
+| --- | --- | --- |
+| Native「通知与控制」面板、渠道名、表单说明、提问卡 | DSH 界面语言 | 切换 DSH 自己的语言 |
+| 手机通知、`notify` / `notify_test` 工具文案、**高级管理台** | 插件配置 `lang` | 在插件配置里写 `lang: en`（默认 `zh`） |
+
+```yaml
+# profile cordis.patch.yml
+- insert:
+    - id: dsh-notifier
+      config:
+        lang: en
+```
+
+`lang` 只覆盖插件自己产出的文案；DSH 宿主与 agent 生成的文字跟随会话语言。
+
 ## 支持的渠道
 
 **出站 28 个：** Bark、Bell、Chanify、Desktop、钉钉、Discord、飞书、Google Chat、Gotify、iGot、Mattermost、ntfy、OneBot 11、PushDeer、Pushover、PushPlus、Qmsg、QQ 官方机器人、Server酱、Slack、Microsoft Teams、Telegram、Webhook、企业微信群机器人、企业微信应用、WPS Bot、WxPusher、息知。
 
 **入站控制 6 个：** Telegram、飞书、QQ 官方机器人、WxPusher、微信 iLink、钉钉。
+
+> **macOS 桌面通知**由 `osascript` 发出，在通知设置里显示为 **Script Editor（脚本编辑器）**
+> （装了 `terminal-notifier` 时插件优先用它，显示为 **terminal-notifier**）。请到
+> **系统设置 → 通知** 允许该发送方；测试成功只说明系统接口被调用，所以该渠道显示
+> **可用 / Ready** 而不是 **正常 / Healthy**。
 
 不同 provider 的按钮、附件、送达回执、重连、账号额度并不一样。项目只按真实证据等级声明能力，详见 [兼容性矩阵](docs/compatibility-matrix.md)。
 

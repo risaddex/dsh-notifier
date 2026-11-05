@@ -1,5 +1,72 @@
 # dsh-notifier 当前交接快照
 
+## DSH 0.2.2-rc.1 compatibility follow-up — 2026-11-05
+
+The existing fork branch now declares exactly `0.2.1-rc.5 || 0.2.2-rc.1` in
+`engines.dsh` and the optional session peer, aligned with the host matrix.
+The previous desktop/i18n work from `86eff08` is preserved. On Linux/Node
+24.22.1, **2059/2059 unit tests** and **20/20 packed host checks per runtime**
+passed. The new CLI installs the package without an exemption; an existing
+profile upgrade was also verified. Use a distinct local tarball filename,
+`dsh-notifier-0.13.1-dsh-022-rc1.tgz`, to avoid reusing the old same-version
+manifest. The new host requires Node >=24.9.0. Evidence and reproduction:
+`docs/new-host/evidence/dsh-022-compat.json`, `test/host/README.md`.
+No real macOS/Desktop banner, model turn or provider/device delivery is claimed.
+
+## English surface follow-up — 2026-11-05
+
+Closed the remaining English gaps of the plugin on `codex/dsh-021-compat`.
+Channel configuration metadata is now bilingual at the source of truth: every
+Chinese `desc` / `label` in `src/adapters/spec-channels.mjs`, `src/field-hints.mjs`
+(`FIELD_HINTS`, split out of `src/config.mjs`) and
+`src/inbound/channel-config.mjs` carries a `descEn` / `labelEn` sibling. Both consumers pick the slot — the Native projection
+(`src/control-surface/channels.mjs`) emits `description: { en, zh }`, and
+`createAdminApi({ lang })` returns a field table whose `desc` is already
+localized for the Advanced Console — each with a Chinese fallback for
+untranslated fields. The `notify` / `notify_test` tool surface moved into
+`src/strings.mjs#notifyTool` and follows `lang`, with `zh` output byte-identical
+to the previous literals. `package.json.description` (npm summary + DSH plugin
+card) is English, and `.dn-page` now owns a bounded, overscroll-contained scroll
+area so long channel lists are reachable.
+
+Full regression on this machine: **2059 tests, 2057 pass, 2 fail**. The two
+failures are pre-existing and environmental (`test/public.test.mjs:543` and
+`test/wiring.route.test.mjs:246` expect only `['webhook']`, but macOS also
+resolves the local `bell` / `desktop` channels); both reproduce unchanged on a
+pristine `git archive HEAD` export (2040 tests, 2038 pass, 2 fail). `npm run
+verify:release`, `node scripts/gen-channel-matrix.mjs --check` and `node --check
+src/index.mjs` pass. The 2011-test row below stays the published v0.13.1
+baseline: no version bump, tag, release or upstream PR was created.
+
+Residual Chinese by design (not user-facing English-UI text): runtime
+`warn`/`info` boot diagnostics, admin `ApiError` messages, and the repository's
+maintainer docs. `test/channel-metadata-i18n.test.mjs` plus the tool/admin-api
+i18n tests fail the build if a channel field loses its English sibling.
+
+Same session, follow-up reported by the user: macOS desktop notifications never
+appeared while the channel showed green. Root cause is that `osascript` posts
+under the **Script Editor** identity and exits 0 regardless of display. `desktop`
+now declares `deliveryEvidence: 'unverifiable'` (control surface shows Ready, never
+Healthy without a confirmed receipt), prefers `terminal-notifier` when it is on
+`PATH`, and the failure/self-check copy names the sender to authorize. The banner
+itself is still not verified in-repo — a human must allow Script Editor /
+terminal-notifier in System Settings → Notifications and confirm. An `osacompile`
+applet was prototyped and rejected (direct applet execution gets no `on run argv`).
+
+## Fork compatibility follow-up — 2026-11-05
+
+`codex/dsh-021-compat` builds on upstream dev `aabc7d7` and retains its exact
+DSH `0.2.1-rc.5` requirement. The guard now checks `engines.dsh` as well as peers
+and matrix metadata; the real-host harness runs outside the maintainer's machine
+and can verify an unpacked tarball. Full regression: **2040 pass, 0 fail, 0 skip**.
+CLI tarball installation and web/headless local-host checks need no compatibility
+exemption. Reproduce with `test/host/README.md`; evidence is recorded in
+`docs/new-host/evidence/issue-51-compat.json`. Open the follow-up against upstream
+**dev**; no upstream PR, merge, version bump, tag or release was created.
+The 2011-test row below is the published v0.13.1 baseline, not the current dev total.
+
+## Published v0.13.1 baseline (historical)
+
 > **v0.13.1 发布收口（2026-09-26）**：`dev` 已完成管理台 i18n、公开能力证据边界、npm 包文档白名单与高风险复核；本版本按正式流程推进 `dev → main`、tag、GitHub Release 与 npm 发布。全量 `npm test` 为 **2011 tests / 2011 pass / 0 fail / 0 skip**，`npm run verify:release` 通过。真实 DSH 真机、provider 账号与真实投递回执未在本次收口中新增验证，继续保持 open，见 `docs/memory/risks.md`。
 
 更新时间：2026-09-26。当前发行线 **v0.13.1**：canonical outbound config、Native/Admin 服务收敛、provider handshake/deadline、durable cursor、epoch/revision 生命周期、structured RPC errors、ErrorBoundary、管理台双语资源、证据边界与 npm payload 白名单均已落地并通过契约回归。npm、`main`、tag 与 GitHub Release 按本次 release closeout 收口，外部 provider/真机证据仍以 `docs/memory/risks.md` 为准。
