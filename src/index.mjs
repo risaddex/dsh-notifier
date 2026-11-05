@@ -417,6 +417,7 @@ export function apply(ctx, config = {}) {
     rateLimitPerMinute: resolved.toolRateLimitPerMinute,
     router,
     channelTypes: () => outboundSource.types(),
+    strings,
   })
   if (disposeTool != null) disposers.push(disposeTool)
   const disposeTestTool = registerNotifyTestTool(ctx, notifier, { rateLimitPerMinute: resolved.toolRateLimitPerMinute, strings })
@@ -936,6 +937,7 @@ export function apply(ctx, config = {}) {
         questionsFallbackEnabled: questionsBridge !== null, // 插件自有 ask_user 工具已注册
         webLocal: 'available', // 管理台本机回环（此 API 自身已在本机运行）
         imageInput: conversationRouterActive ? 'available' : 'unknown', // 图片入站随会话路由装配
+        lang: resolved.lang, // 管理台字段说明取 zh/en 槽（与 createAdminUiHtml(resolved.lang) 同源）
       })
       surfaceAdminApi = adminApi
       adminApi.testOutboundChannel = async (type) => {

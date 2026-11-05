@@ -7,6 +7,13 @@ import { exposureOf, isPublicExposure } from '../security/exposure.mjs'
 
 const labelOf = (type) => ({ en: type, zh: type })
 
+/**
+ * 双语文案槽：en 取 descEn，缺省回落 zh。
+ * 未翻译的声明表字段保持旧行为（en 与 zh 同文）；覆盖完整性由
+ * test/channel-metadata-i18n.test.mjs 静态守卫（每个 desc 必须配 descEn）。
+ */
+const textPair = (zh, en) => ({ en: String(en ?? zh), zh: String(zh) })
+
 /** Native 列表 = 出站渠道 + 仅入站渠道；别名渠道只保留出站代表行。 */
 const SURFACE_TYPES = Object.freeze([
   ...CHANNEL_TYPES,
@@ -23,7 +30,7 @@ function fieldViews(fields, rawConfig = {}) {
       exposure: exposureOf(meta),
       configured: Object.prototype.hasOwnProperty.call(rawConfig, key) && rawConfig[key] !== '' && rawConfig[key] !== null && rawConfig[key] !== undefined,
       label: { en: key, zh: key },
-      ...(meta?.desc ? { description: { en: String(meta.desc), zh: String(meta.desc) } } : {}),
+      ...(meta?.desc ? { description: textPair(meta.desc, meta.descEn) } : {}),
     }
   }
   return out

@@ -313,6 +313,9 @@ export function createAdminApi(options = {}) {
     // 能力快照注入（全部只读；缺失一律安全降级，绝不抛）。
     ctx = null, attentionOf = null, hostSnapshot = null,
     questionsFallbackEnabled = false, webLocal = 'unknown', imageInput = 'unknown', inboundConfig = null,
+    // 管理台语言（resolveConfig().lang）：只影响字段说明回给 UI 时取中文还是英文槽，
+    // 不改变键域、脱敏和写入语义。
+    lang = 'zh',
   } = options ?? {}
 
   const warn = (message) => {
@@ -320,6 +323,23 @@ export function createAdminApi(options = {}) {
     // dsh web profile 下 logger 不落 stdout，成员读失败降级/mint 500 兜底全部零可见）
     try { logger?.warn?.('[dsh-notifier/admin-api]', message) } catch { /* 日志失败绝不致命 */ }
     try { console.error('[dsh-notifier/admin-api]', message) } catch { /* 控制台不可用不致命 */ }
+  }
+
+  /**
+   * 管理台字段表本地化（管理台 UI 的 placeholder 与悬停提示都读字段 `desc`）：
+   * UI 语言为 en 且字段带 `descEn` 时用英文说明覆盖 `desc`；未翻译字段回落中文，
+   * 缺 `descEn` 不丢说明、不改键域与脱敏语义。
+   */
+  const localizeFields = (fields) => {
+    const source = plainObjectOf(fields) ?? {}
+    if (lang !== 'en') return source
+    const out = {}
+    for (const [key, meta] of Object.entries(source)) {
+      out[key] = (typeof meta?.descEn === 'string' && meta.descEn !== '')
+        ? { ...meta, desc: meta.descEn }
+        : meta
+    }
+    return out
   }
 
   // ---- store 防御壳：方法缺失/抛错一律按「无此数据」处理，绝不外泄 ----
@@ -965,7 +985,7 @@ export function createAdminApi(options = {}) {
           return {
             ...row,
             config: maskSecrets(plainObjectOf(safeGet(`${row.type}:account`)) ?? {}, plainFieldsOf(row.type)),
-            fields: { ...(INBOUND_FIELDS[row.type] ?? {}) },
+            fields: localizeFields({ ...(INBOUND_FIELDS[row.type] ?? {}) }),
           }
         }
         // 零配置首访：出站行读取优先级 = admin:channel:<type>:outbound → 非双域 <type>:account → YAML
@@ -984,7 +1004,7 @@ export function createAdminApi(options = {}) {
           // store 字段覆盖同名 YAML 字段（字段级浅合并；数组值整体替换，如 uids）；
           // plain 声明字段（wps-bot msgtype）明文回显，其余字符串照常脱敏
           config: maskSecrets(merged, plainFieldsOf(row.type)),
-          fields: channelFieldsOf(row.type),
+          fields: localizeFields(channelFieldsOf(row.type)),
         }
         // spec 声明 docUrl 的渠道附官方文档跳转（wps-bot 接入指南），未声明省略该键
         const docUrl = channelDocUrlOf(row.type)

@@ -554,6 +554,28 @@ test('patchSessionControl：真实 createStore 落盘失败 → 500（真实写�
 
 // ———————— getChannels / putChannel ————————
 
+test('getChannels：管理台 lang=en 时字段说明取英文槽（descEn），缺省保持中文且键域不变', () => {
+  const stateDir = mkdtempSync(join(tmpdir(), 'dsh-notifier-admin-api-'))
+  const zh = createAdminApi({ stateDir })
+  const en = createAdminApi({ stateDir, lang: 'en' })
+  const rowOf = (api, type, direction) => api.getChannels().find((row) => row.type === type && row.direction === direction)
+
+  const zhBell = rowOf(zh, 'bell', 'outbound')
+  const enBell = rowOf(en, 'bell', 'outbound')
+  assert.match(zhBell.fields.count.desc, /响铃次数/, '缺省语言保持既有中文说明')
+  assert.equal(enBell.fields.count.desc, 'Number of rings, 1-5 (default 1)', 'en 取 descEn')
+  assert.deepEqual(Object.keys(enBell.fields).sort(), Object.keys(zhBell.fields).sort(), '键域不随语言变化')
+
+  const zhIn = rowOf(zh, 'telegram', 'inbound')
+  const enIn = rowOf(en, 'telegram', 'inbound')
+  assert.match(zhIn.fields.botToken.desc, /Telegram Bot Token/)
+  assert.match(enIn.fields.botToken.desc, /same bot as the outbound channel/, '入站字段同样取英文槽')
+  assert.equal(/[\u4e00-\u9fff]/.test(enIn.fields.botToken.desc), false, '入站 en 说明不得包含中文')
+
+  const badLang = createAdminApi({ stateDir, lang: 'fr' })
+  assert.equal(rowOf(badLang, 'bell', 'outbound').fields.count.desc, '响铃次数 1-5（默认 1）', '未知语言回落中文')
+})
+
 test('getChannels：深层脱敏（嵌套对象/数组里的字符串 → ***，非字符串值保留）', () => {
   const { api } = makeApi({
     state: {

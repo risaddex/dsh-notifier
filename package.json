@@ -1,7 +1,7 @@
 {
   "name": "dsh-notifier",
   "version": "0.13.1",
-  "description": "DSH 通知与远程操作控制面：28 个出站渠道、6 条入站控制通道、原生「通知与控制」UI、出站热生效；零强制运行时依赖。",
+  "description": "Notification and remote-control surface for DeepSeek Harness: 28 outbound channels, 6 inbound control channels, native Notify & Control UI, live outbound config; zero mandatory runtime dependencies. English and Chinese UI.",
   "type": "module",
   "main": "src/plugin-entry.mjs",
   "exports": {

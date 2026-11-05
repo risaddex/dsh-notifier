@@ -128,10 +128,12 @@ export const SPEC_CHANNELS = {
 
   slack: {
     label: 'Slack',
+    labelEn: 'Slack',
     desc: 'Slack Incoming Webhook',
+    descEn: 'Slack Incoming Webhook',
     ssrfGuard: true, // S-02：webhook 地址用户可配
     fields: {
-      webhook: { required: true, secret: true, desc: 'Slack Incoming Webhook 完整地址：api.slack.com/apps → 你的 App → Incoming Webhooks → 添加到工作区后复制' },
+      webhook: { required: true, secret: true, desc: 'Slack Incoming Webhook 完整地址：api.slack.com/apps → 你的 App → Incoming Webhooks → 添加到工作区后复制', descEn: 'Full Slack Incoming Webhook URL: api.slack.com/apps -> your app -> Incoming Webhooks -> add to a workspace, then copy' },
     },
     encode: 'json',
     request: (cfg, msg) => ({ url: cfg.webhook, body: { text: joinPara(msg) } }),
@@ -150,10 +152,12 @@ export const SPEC_CHANNELS = {
 
   discord: {
     label: 'Discord',
+    labelEn: 'Discord',
     desc: 'Discord Webhook',
+    descEn: 'Discord Webhook',
     ssrfGuard: true, // S-02：webhook 地址用户可配
     fields: {
-      webhook: { required: true, secret: true, desc: 'Discord Webhook 完整地址：服务器设置 → 整合 → Webhook → 新建后复制' },
+      webhook: { required: true, secret: true, desc: 'Discord Webhook 完整地址：服务器设置 → 整合 → Webhook → 新建后复制', descEn: 'Full Discord webhook URL: Server Settings -> Integrations -> Webhooks -> create one, then copy' },
     },
     encode: 'json',
     // G-39：Discord content 硬上限 2000 字符——超限发送只回一句 400[Bulk edit]，
@@ -171,11 +175,13 @@ export const SPEC_CHANNELS = {
 
   wecom: {
     label: '企业微信群机器人',
+    labelEn: 'WeCom group robot',
     desc: 'WeCom group robot webhook',
+    descEn: 'WeCom group robot webhook',
     ssrfGuard: true, // S-02：webhook 整地址用户可配（key 模式拼官方域名也会被同一闸校验，官方域名公网放行无副作用）
     fields: {
-      webhook: { secret: true, desc: '机器人完整 webhook 地址（与 key 二选一）：企业微信群 → 群设置 → 添加群机器人 → 复制 webhook' },
-      key: { secret: true, desc: '机器人 key（webhook 地址 ?key= 后面的部分，与 webhook 二选一）' },
+      webhook: { secret: true, desc: '机器人完整 webhook 地址（与 key 二选一）：企业微信群 → 群设置 → 添加群机器人 → 复制 webhook', descEn: 'Full robot webhook URL (either this or key): WeCom group -> Group Settings -> Add Group Robot -> copy the webhook' },
+      key: { secret: true, desc: '机器人 key（webhook 地址 ?key= 后面的部分，与 webhook 二选一）', descEn: 'Robot key (the part after ?key= in the webhook URL; either this or webhook)' },
     },
     encode: 'json',
     request: (cfg, msg) => ({
@@ -193,12 +199,14 @@ export const SPEC_CHANNELS = {
 
   mattermost: {
     label: 'Mattermost',
+    labelEn: 'Mattermost',
     desc: 'Mattermost incoming webhook',
+    descEn: 'Mattermost incoming webhook',
     ssrfGuard: true, // S-02：server/webhook 均用户可配；内网 Mattermost 需 allowPrivateNetwork: true
     fields: {
-      server: { desc: 'Mattermost 服务器地址（与 webhook 二选一时给全地址可省略），如 https://mm.example.com' },
-      hookId: { secret: true, desc: 'Incoming Webhook 的 id：Mattermost → 集成 → Incoming Webhook 复制地址末段' },
-      webhook: { secret: true, desc: 'Incoming Webhook 完整地址（与 server+hookId 二选一）' },
+      server: { desc: 'Mattermost 服务器地址（与 webhook 二选一时给全地址可省略），如 https://mm.example.com', descEn: 'Mattermost server URL (can be omitted when the full webhook URL is given instead), e.g. https://mm.example.com' },
+      hookId: { secret: true, desc: 'Incoming Webhook 的 id：Mattermost → 集成 → Incoming Webhook 复制地址末段', descEn: 'Incoming webhook id: Mattermost -> Integrations -> Incoming Webhooks, copy the last segment of the URL' },
+      webhook: { secret: true, desc: 'Incoming Webhook 完整地址（与 server+hookId 二选一）', descEn: 'Full incoming webhook URL (either this or server + hookId)' },
     },
     encode: 'json',
     // v0.6.5（审查 R4-3-P2-1）：删除 'https://mattermost.com' 缺省——Mattermost 无官方
@@ -220,10 +228,12 @@ export const SPEC_CHANNELS = {
 
   gchat: {
     label: 'Google Chat',
+    labelEn: 'Google Chat',
     desc: 'Google Chat webhook (spaces)',
+    descEn: 'Google Chat webhook (spaces)',
     ssrfGuard: true, // S-02：webhook 地址用户可配
     fields: {
-      webhook: { required: true, secret: true, desc: 'Google Chat 空间 Incoming Webhook：空间名旁 ▾ → 应用和集成 → Webhook → 复制' },
+      webhook: { required: true, secret: true, desc: 'Google Chat 空间 Incoming Webhook：空间名旁 ▾ → 应用和集成 → Webhook → 复制', descEn: 'Google Chat space incoming webhook: the menu next to the space name -> Apps & integrations -> Webhooks -> copy' },
     },
     encode: 'json',
     request: (cfg, msg) => ({ url: cfg.webhook, body: { text: joinText(msg) } }),
@@ -232,10 +242,12 @@ export const SPEC_CHANNELS = {
 
   teams: {
     label: 'Microsoft Teams',
+    labelEn: 'Microsoft Teams',
     desc: 'Teams Workflows Incoming Webhook (Adaptive Card)',
+    descEn: 'Teams Workflows Incoming Webhook (Adaptive Card)',
     ssrfGuard: true, // S-02：webhook 地址用户可配
     fields: {
-      webhook: { required: true, secret: true, desc: 'Teams Workflows Incoming Webhook URL：团队频道 → 管理 → 连接器/工作流 → 「将 webhook 请求发布到频道」创建后复制' },
+      webhook: { required: true, secret: true, desc: 'Teams Workflows Incoming Webhook URL：团队频道 → 管理 → 连接器/工作流 → 「将 webhook 请求发布到频道」创建后复制', descEn: 'Teams Workflows incoming webhook URL: team channel -> Manage -> Connectors/Workflows -> create "Post to a channel when a webhook request is received", then copy' },
     },
     encode: 'json',
     // Teams 只吃 Adaptive Card：文本块包一层 card（官方协议，非简化）。
@@ -263,12 +275,14 @@ export const SPEC_CHANNELS = {
 
   ntfy: {
     label: 'ntfy',
+    labelEn: 'ntfy',
     desc: 'ntfy push (public/self-hosted, topic)',
+    descEn: 'ntfy push (public/self-hosted, topic)',
     ssrfGuard: true, // S-02：server 用户可配；内网自托管 ntfy 需 allowPrivateNetwork: true
     fields: {
-      server: { default: 'https://ntfy.sh', desc: 'ntfy 服务器地址，默认公共站 ntfy.sh，自托管填自己的地址' },
-      topic: { required: true, desc: '订阅 topic 名（手机 App 里订阅同名 topic 即可收到；自建服务器建议配 auth）' },
-      auth: { secret: true, desc: '可选鉴权头原值，如 "Basic dXNlcjpwYXNz" 或 "Bearer tk_..."（自托管保护 topic 时用）' },
+      server: { default: 'https://ntfy.sh', desc: 'ntfy 服务器地址，默认公共站 ntfy.sh，自托管填自己的地址', descEn: 'ntfy server URL; defaults to the public server ntfy.sh, self-hosted users enter their own' },
+      topic: { required: true, desc: '订阅 topic 名（手机 App 里订阅同名 topic 即可收到；自建服务器建议配 auth）', descEn: 'Topic name to subscribe to (subscribe to the same topic in the mobile app to receive it; self-hosted servers should set auth)' },
+      auth: { secret: true, desc: '可选鉴权头原值，如 "Basic dXNlcjpwYXNz" 或 "Bearer tk_..."（自托管保护 topic 时用）', descEn: 'Optional raw auth header value, e.g. "Basic dXNlcjpwYXNz" or "Bearer tk_..." (used when a self-hosted server protects the topic)' },
     },
     // v0.6.5（审查 R4-3-P1-1）：从「POST /<topic> + X-Title/X-Priority 头」改为 ntfy
     // 官方 JSON 发布协议（POST 服务根，topic/title/message/priority 全进 body）。
@@ -292,11 +306,13 @@ export const SPEC_CHANNELS = {
 
   gotify: {
     label: 'Gotify',
+    labelEn: 'Gotify',
     desc: 'Gotify push (self-hosted, app token)',
+    descEn: 'Gotify push (self-hosted, app token)',
     ssrfGuard: true, // S-02：server 用户可配；内网自托管 Gotify 需 allowPrivateNetwork: true
     fields: {
-      server: { required: true, desc: 'Gotify 服务器地址，如 https://gotify.example.com（自托管，官方演示站 gotify.net 亦可）' },
-      appToken: { required: true, secret: true, desc: '应用 token：Gotify Web → APPS → CREATE APPLICATION 后复制' },
+      server: { required: true, desc: 'Gotify 服务器地址，如 https://gotify.example.com（自托管，官方演示站 gotify.net 亦可）', descEn: 'Gotify server URL, e.g. https://gotify.example.com (self-hosted; the official demo site gotify.net also works)' },
+      appToken: { required: true, secret: true, desc: '应用 token：Gotify Web → APPS → CREATE APPLICATION 后复制', descEn: 'App token: Gotify Web -> APPS -> CREATE APPLICATION, then copy' },
     },
     encode: 'json',
     request: (cfg, msg) => ({
@@ -309,10 +325,12 @@ export const SPEC_CHANNELS = {
 
   pushover: {
     label: 'Pushover',
+    labelEn: 'Pushover',
     desc: 'Pushover push (paid iOS/Android app)',
+    descEn: 'Pushover push (paid iOS/Android app)',
     fields: {
-      token: { required: true, secret: true, desc: '应用 API token：pushover.net → Your Applications → Create 复制' },
-      user: { required: true, secret: true, desc: '用户/群组 key：pushover.net 首页右上角复制（发送到群组则填群组 key）' },
+      token: { required: true, secret: true, desc: '应用 API token：pushover.net → Your Applications → Create 复制', descEn: 'App API token: pushover.net -> Your Applications -> Create Application, then copy' },
+      user: { required: true, secret: true, desc: '用户/群组 key：pushover.net 首页右上角复制（发送到群组则填群组 key）', descEn: 'User or group key: copy it from the top right of the pushover.net home page (fill the group key to send to a group)' },
     },
     encode: 'form',
     timeoutMs: 15000,
@@ -332,11 +350,13 @@ export const SPEC_CHANNELS = {
 
   chanify: {
     label: 'Chanify',
+    labelEn: 'Chanify',
     desc: 'Chanify push (iOS)',
+    descEn: 'Chanify push (iOS)',
     ssrfGuard: true, // S-02：baseUrl 用户可配
     fields: {
-      baseUrl: { default: 'https://api.chanify.net/v1/sender', desc: 'Chanify 服务地址，默认公共服务，自托管填自己的' },
-      token: { required: true, secret: true, desc: '设备 token：Chanify iOS App → 通道 → 复制 Send Token' },
+      baseUrl: { default: 'https://api.chanify.net/v1/sender', desc: 'Chanify 服务地址，默认公共服务，自托管填自己的', descEn: 'Chanify service URL; defaults to the public service, self-hosted users enter their own' },
+      token: { required: true, secret: true, desc: '设备 token：Chanify iOS App → 通道 → 复制 Send Token', descEn: 'Device token: Chanify iOS App -> Channel -> copy the Send Token' },
     },
     encode: 'form',
     // v0.6.5（审查 R4-3-P1-2）：去掉多拼的 /send 段。官方端点是
@@ -351,11 +371,13 @@ export const SPEC_CHANNELS = {
 
   pushdeer: {
     label: 'PushDeer',
+    labelEn: 'PushDeer',
     desc: 'PushDeer push (iOS/macOS)',
+    descEn: 'PushDeer push (iOS/macOS)',
     ssrfGuard: true, // S-02：endpoint 用户可配；自建服务在内网时需 allowPrivateNetwork: true
     fields: {
-      pushKey: { required: true, secret: true, desc: 'PushKey：PushDeer App → Key 页复制（自建服务配合 endpoint 使用）' },
-      endpoint: { default: 'https://api2.pushdeer.com', desc: '服务地址，默认官方，自建填自己的' },
+      pushKey: { required: true, secret: true, desc: 'PushKey：PushDeer App → Key 页复制（自建服务配合 endpoint 使用）', descEn: 'PushKey: copy it from the Key page in the PushDeer app (self-hosted services use it together with endpoint)' },
+      endpoint: { default: 'https://api2.pushdeer.com', desc: '服务地址，默认官方，自建填自己的', descEn: 'Service URL; defaults to the official service, self-hosted users enter their own' },
     },
     encode: 'form',
     request: (cfg, msg) => ({
@@ -368,9 +390,11 @@ export const SPEC_CHANNELS = {
 
   xizhi: {
     label: '息知',
+    labelEn: 'XiZhi',
     desc: 'XiZhi push (WeChat)',
+    descEn: 'XiZhi push (WeChat)',
     fields: {
-      key: { required: true, secret: true, desc: '息知 key：xizhi.qqoq.net 微信扫码登录后复制' },
+      key: { required: true, secret: true, desc: '息知 key：xizhi.qqoq.net 微信扫码登录后复制', descEn: 'XiZhi key: sign in with the WeChat QR code at xizhi.qqoq.net, then copy it' },
     },
     encode: 'json',
     request: (cfg, msg) => ({
@@ -383,10 +407,12 @@ export const SPEC_CHANNELS = {
 
   qmsg: {
     label: 'Qmsg酱',
+    labelEn: 'Qmsg',
     desc: 'Qmsg push (QQ)',
+    descEn: 'Qmsg push (QQ)',
     fields: {
-      key: { required: true, secret: true, desc: 'Qmsg key：qmsg.zendee.cn QQ 登录后复制' },
-      group: { desc: '群推送的群号（留空=单聊，目标由 Qmsg 控制台绑定的机器人好友决定）' },
+      key: { required: true, secret: true, desc: 'Qmsg key：qmsg.zendee.cn QQ 登录后复制', descEn: 'Qmsg key: sign in with QQ at qmsg.zendee.cn, then copy it' },
+      group: { desc: '群推送的群号（留空=单聊，目标由 Qmsg 控制台绑定的机器人好友决定）', descEn: 'Group number for group pushes (leave empty for direct chat; the target is the bot friend bound in the Qmsg console)' },
     },
     encode: 'form',
     preresolve: migrateQmsgLegacy,
@@ -401,9 +427,11 @@ export const SPEC_CHANNELS = {
 
   igot: {
     label: 'iGot',
+    labelEn: 'iGot',
     desc: 'iGot push (iOS)',
+    descEn: 'iGot push (iOS)',
     fields: {
-      key: { required: true, secret: true, desc: 'iGot key：push.hellyw.com 微信扫码获取' },
+      key: { required: true, secret: true, desc: 'iGot key：push.hellyw.com 微信扫码获取', descEn: 'iGot key: get it by scanning the WeChat QR code at push.hellyw.com' },
     },
     encode: 'json',
     request: (cfg, msg) => ({
@@ -418,17 +446,19 @@ export const SPEC_CHANNELS = {
 
   onebot: {
     label: 'QQ OneBot 11',
+    labelEn: 'QQ OneBot 11',
     desc: 'OneBot v11 HTTP (NapCat/LLOneBot self-hosted)',
+    descEn: 'OneBot v11 HTTP (NapCat/LLOneBot self-hosted)',
     // S-02：baseUrl 用户可配，但渠道本质是本机/内网服务（文档默认即 http://127.0.0.1:3000，
     // NapCat/LLOneBot 跑在同一台机器）——默认放行私网，否则开箱即用被 SSRF 闸打断。
     ssrfGuard: 'private-ok',
     fields: {
-      baseUrl: { required: true, desc: 'OneBot 实现（NapCat/LLOneBot/go-cqhttp）的 HTTP 服务地址，如 http://127.0.0.1:3000' },
-      accessToken: { secret: true, desc: '可选 access token（OneBot 配置里设置的鉴权 token）' },
-      messageType: { default: 'private', desc: 'private=私聊（默认）/ group=群聊' },
+      baseUrl: { required: true, desc: 'OneBot 实现（NapCat/LLOneBot/go-cqhttp）的 HTTP 服务地址，如 http://127.0.0.1:3000', descEn: 'HTTP service URL of the OneBot implementation (NapCat/LLOneBot/go-cqhttp), e.g. http://127.0.0.1:3000' },
+      accessToken: { secret: true, desc: '可选 access token（OneBot 配置里设置的鉴权 token）', descEn: 'Optional access token (the auth token set in the OneBot configuration)' },
+      messageType: { default: 'private', desc: 'private=私聊（默认）/ group=群聊', descEn: 'private = direct chat (default) / group = group chat' },
       // type:'number'：QQ 号在 YAML/JSON 里数字与字符串两形态都常见，engine 双形态归一
-      userId: { desc: '私聊目标 QQ 号（messageType: private 时必填）', type: 'number' },
-      groupId: { desc: '群号（messageType: group 时必填）', type: 'number' },
+      userId: { desc: '私聊目标 QQ 号（messageType: private 时必填）', descEn: 'Target QQ number for direct chat (required when messageType: private)', type: 'number' },
+      groupId: { desc: '群号（messageType: group 时必填）', descEn: 'Group number (required when messageType: group)', type: 'number' },
     },
     encode: 'json',
     // v0.6.5（审查 R4-3-P2-3）：message 改用 OneBot 11 标准消息数组格式。原字符串直传
@@ -475,15 +505,17 @@ export const SPEC_CHANNELS = {
   //    不得外传/复用，用户须在协作群里自建机器人拿自己的 key。
   'wps-bot': {
     label: 'WPS 协作群机器人',
+    labelEn: 'WPS collaboration group robot',
     desc: 'WPS collaboration group robot webhook (WOA)',
+    descEn: 'WPS collaboration group robot webhook (WOA)',
     ssrfGuard: true, // S-02：webhook 用户可配（仅放行官方三家域名，见 validate）
     // v0.13.1（用户拍板）：官方固定端点渠道，不暴露 timeoutMs/allowPrivateNetwork 引擎
     // 调优选项——cfg 里同名键一律忽略（引擎 fixedOptions 语义），管理台键白名单同步收窄。
     fixedOptions: true,
     docUrl: 'https://365.kdocs.cn/3rd/open/documents/app-integration-dev/guide/robot/webhook',
     fields: {
-      webhook: { required: true, secret: true, desc: 'WPS 协作群机器人完整 webhook 地址（含 ?key=）：在 WPS 协作群添加群机器人后复制，形如 https://365.kdocs.cn/woa/api/v1/webhook/send?key=<32 位 key>' },
-      msgtype: { default: 'text', plain: true, desc: '消息类型：text（默认，标题+正文）或 markdown（富文本）' },
+      webhook: { required: true, secret: true, desc: 'WPS 协作群机器人完整 webhook 地址（含 ?key=）：在 WPS 协作群添加群机器人后复制，形如 https://365.kdocs.cn/woa/api/v1/webhook/send?key=<32 位 key>', descEn: 'Full WPS collaboration group robot webhook URL (including ?key=): add a group robot in the WPS collaboration group, then copy it; it looks like https://365.kdocs.cn/woa/api/v1/webhook/send?key=<32-character key>' },
+      msgtype: { default: 'text', plain: true, desc: '消息类型：text（默认，标题+正文）或 markdown（富文本）', descEn: 'Message type: text (default, title + content) or markdown (rich text)' },
     },
     encode: 'json',
     // v0.13.1 存量兼容：旧双字段 webhookKey+webhookHost（YAML/state.json 遗留）在字段提取
